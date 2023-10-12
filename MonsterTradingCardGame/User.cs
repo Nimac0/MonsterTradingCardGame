@@ -10,6 +10,7 @@ namespace MonsterTradingCardGame
     public class User
     {
         public string UserName { get; set; }
+        public List<Card> Carddeck { get; set; }
         public User(string UserName)
         {
             this.UserName = UserName;
