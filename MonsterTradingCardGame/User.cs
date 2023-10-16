@@ -13,37 +13,52 @@ namespace MonsterTradingCardGame
         public string Password { get; set; }
         public int Coins { get; set; }
         public int EloValue { get; set; }
-        public List<Card> Carddeck { get; set; }
+        public List<Card> PlayingDeck { get; set; }
+        public List<Card> CardStack { get; set; }
 
-        public List<Card> buyCards()
+
+        public void BuyCards(ref List<Card> playerdeck)
         {
-            List<Card> newCards;
-            return newCards;
-        }
+            Random rand = new Random((int)DateTime.UtcNow.Ticks);
 
-        public void addNewCard(ref List<Card> playerdeck, List<Card> boughtCards)
-        {
-            int cardNumber = 0;
-
-            foreach(Card card in boughtCards)
+            if(this.Coins <= 0)
             {
-                cardNumber++;
-                Console.WriteLine(cardNumber + ". " + card.CardName);
+                Console.WriteLine("Nope");
             }
 
-            Console.WriteLine("Input the number of the card you want to keep: ");
-            int chosenCard = Convert.ToInt32(Console.ReadLine());
+            this.Coins = this.Coins - 5;
 
-            playerdeck.Add(boughtCards.ElementAt(chosenCard));
+            for(int i = 0; i < 5; i++)
+            {
+                switch (rand.Next(2))
+                {
+                    case 0:
+                        this.CardStack.Add(new MonsterCard(
+                            (Element) rand.Next(Enum.GetNames(typeof(Element)).Length),
+                            (MonsterType) rand.Next(Enum.GetNames(typeof(MonsterType)).Length)));
+                        break;
+                    case 1:
+                        this.CardStack.Add(new SpellCard(
+                            (Element) rand.Next(Enum.GetNames(typeof(Element)).Length)));
+                        break;
+                    default: break;
+                }
+            }
         }
 
-        public User(string userName, string password,int coins, int eloValue, List<Card> carddeck)
+        public void choosePlayingCards()
+        {
+
+        }
+
+        public User(string userName, string password,int coins, int eloValue)
         {
             this.UserName = userName;
             this.Password = password;
             this.Coins = coins;
             this.EloValue = eloValue;
-            this.Carddeck = carddeck;
+            this.PlayingDeck = new List<Card>(4) { };
+            this.CardStack = new List<Card> { };
         }
 
     }

@@ -16,17 +16,20 @@ namespace MonsterTradingCardGame
 
     public abstract class Card
     {
-        public Card(Element cardElement, string cardName, int cost)
+        public IDictionary<Element, string> ElementType = new Dictionary<Element, string>()
+        {
+            { Element.WATER, "Water" },
+            { Element.FIRE, "Fire" },
+            { Element.NORMAL, "Regular" }
+        };
+
+        public Card(Element cardElement)
         {
             this.CardElement = cardElement;
-            this.CardName = cardName;
-            this.Cost = cost;
         }
 
         public Element CardElement { get; set; }
         public string CardName { get; set; }
-        public int Cost { get; set; }
-
-
+        public int Damage { get; set; }
     }
 }
