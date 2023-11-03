@@ -10,6 +10,7 @@ namespace MonsterTradingCardGame
     {
         public SpellCard(Element cardElement) : base(cardElement)
         {
+            this.Type = CardType.SPELL;
             base.CardName = ElementType[cardElement] + "Spell";
             Random rand = new Random((int)DateTime.UtcNow.Ticks);
             this.Damage = (rand.Next(15)) * 5;

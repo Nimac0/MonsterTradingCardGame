@@ -6,35 +6,22 @@ using System.Threading.Tasks;
 
 namespace MonsterTradingCardGame
 {
-    enum MonsterType
-    {
-        GOBLIN = 0,
-        WIZZARD,
-        ORKS,
-        DRAGON,
-        KNIGHT,
-        KRAKEN,
-        ELF
-    }
 
     internal class MonsterCard : Card
     {
 
-        public IDictionary<MonsterType, string> MonsterNames = new Dictionary<MonsterType, string>()
+        public IDictionary<CardType, string> MonsterNames = new Dictionary<CardType, string>()
         {
-            { MonsterType.GOBLIN, "Goblin" },
-            { MonsterType.DRAGON, "Dragon" },
-            { MonsterType.WIZZARD, "Wizzard" },
-            { MonsterType.ORKS, "Orks" },
-            { MonsterType.KNIGHT, "Knight" },
-            { MonsterType.KRAKEN, "Kraken" },
-            { MonsterType.ELF, "Elf" }
+            { CardType.GOBLIN, "Goblin" },
+            { CardType.DRAGON, "Dragon" },
+            { CardType.WIZZARD, "Wizzard" },
+            { CardType.ORKS, "Orks" },
+            { CardType.KNIGHT, "Knight" },
+            { CardType.KRAKEN, "Kraken" },
+            { CardType.ELF, "Elf" }
         };
 
-        public MonsterType Type;
-        
-
-        public MonsterCard(Element cardElement, MonsterType monsterType) : base(cardElement)
+        public MonsterCard(Element cardElement, CardType monsterType) : base(cardElement)
         {
             this.Type = monsterType;
             this.CardName = ElementType[cardElement] + MonsterNames[monsterType];

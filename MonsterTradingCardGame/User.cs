@@ -35,7 +35,7 @@ namespace MonsterTradingCardGame
                     case 0:
                         this.CardStack.Add(new MonsterCard(
                             (Element) rand.Next(Enum.GetNames(typeof(Element)).Length),
-                            (MonsterType) rand.Next(Enum.GetNames(typeof(MonsterType)).Length)));
+                            (CardType) rand.Next(Enum.GetNames(typeof(CardType)).Length)));
                         break;
                     case 1:
                         this.CardStack.Add(new SpellCard(

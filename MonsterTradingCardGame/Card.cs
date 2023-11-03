@@ -14,6 +14,18 @@ namespace MonsterTradingCardGame
         NORMAL
     }
 
+    public enum CardType
+    {
+        GOBLIN = 0,
+        WIZZARD,
+        ORKS,
+        DRAGON,
+        KNIGHT,
+        KRAKEN,
+        ELF,
+        SPELL
+    }
+
     public abstract class Card
     {
         public IDictionary<Element, string> ElementType = new Dictionary<Element, string>()
@@ -23,11 +35,16 @@ namespace MonsterTradingCardGame
             { Element.NORMAL, "Regular" }
         };
 
+        
+
         public Card(Element cardElement)
         {
             this.CardElement = cardElement;
+            this.isUsable = true;
         }
 
+        public bool isUsable { get; set; }
+        public CardType Type { get; set; }
         public Element CardElement { get; set; }
         public string CardName { get; set; }
         public int Damage { get; set; }

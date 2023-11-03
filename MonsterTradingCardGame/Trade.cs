@@ -6,11 +6,7 @@ using System.Threading.Tasks;
 
 namespace MonsterTradingCardGame
 {
-    internal class Game
+    internal class Trade
     {
-        public Game()
-        {
-           
-        }
     }
 }
