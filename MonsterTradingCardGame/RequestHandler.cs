@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Net.WebSockets;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -24,67 +25,44 @@ namespace MonsterTradingCardGame
 
         public void ProcessInput()
         {
-            ProtocolHandler protocolHandler = new ProtocolHandler();
+            MethodHandler methodHandler = new MethodHandler();
             byte[] buffer = new byte[256];
-            Socket clientSocket = this.EstablishConnection();
 
-            int bytesRecieved = clientSocket.Receive(buffer);
-
-            string request = Encoding.ASCII.GetString(buffer, 0, buffer.Length);
-
-            string method = protocolHandler.GetMethod(request);
-            string destination = protocolHandler.GetDestination(request);
-
-
-            Console.WriteLine(request);
-
-        }
-
-        public void HandleMethod(string method, string destination)
-        {
-            switch(method)
+            while(true)
             {
-                case "GET": this.HandleGetRequest(destination);
-                    break;
-                case "POST": this.HandlePostRequest(destination);
-                    break;
-                case "PUT": this.HandlePutRequest(destination);
-                    break;
-                case "DELETE": this.HandleDeleteRequest(destination);
-                    break;
-                default: 
-                    break;
+                Socket clientSocket = this.EstablishConnection();
+
+                int bytesRecieved = clientSocket.Receive(buffer);
+
+                string request = Encoding.ASCII.GetString(buffer, 0, bytesRecieved);
+
+                string[] requestParams = request.Split('\n');
+                string[] requestLine = requestParams[0].Split(' ');
+
+                int i = 1;
+                Dictionary<string, string> httpHeaders = new Dictionary<string, string>();
+
+                for (; requestParams[i].Length != 0; i++)
+                {
+                    string[] header = requestParams[i].Split(':');
+                    httpHeaders.Add(header[0], header[1].TrimStart()); // value has leading space -> trim
+                }
+
+                // body starts at line i+1
+                string requestBody = "";
+                for (i++; i < requestParams.Length; i++)
+                {
+                    requestBody += requestParams[i];
+                }
+
+
+                Console.WriteLine(request);
+
+                methodHandler.HandleMethod(requestLine[0], requestLine[1], requestBody); //method and destination
             }
-        }
-
-        public void HandleGetRequest(string destination)
-        {
-            switch (destination)
-            {
-
-            }
-        }
-
-        public void HandlePostRequest(string destination)
-        {
 
         }
 
-        public void HandlePutRequest(string destination)
-        {
-
-        }
-
-        public void HandleDeleteRequest(string destination)
-        {
-
-        }
-
-        public bool ValidRequest { get; set; }
-
-        public RequestHandler()
-        {
-            
-        }
+        
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,13 +15,6 @@ namespace MonsterTradingCardGame
             WIN = 0,
             LOSE,
             DRAW
-        }
-
-        public enum ImmuneParty
-        {
-            PLAYER = 0,
-            ENEMY,
-            NONE
         }
 
         private User _player;
@@ -52,11 +46,11 @@ namespace MonsterTradingCardGame
 
                 if(WinnerCard == currPlayerCard)
                 {
-                    this._player.PlayingDeck.Add(this._enemy.PlayingDeck.First()); //take losers card
+                    this._player.CardStack.Add(this._enemy.PlayingDeck.First()); //take losers card to cardstack
                     this._enemy.PlayingDeck.RemoveAt(0);
                     continue;
                 }
-                this._enemy.PlayingDeck.Add(this._player.PlayingDeck.First());
+                this._enemy.CardStack.Add(this._player.PlayingDeck.First());
                 this._player.PlayingDeck.RemoveAt(0);
                 continue;
 
@@ -88,10 +82,8 @@ namespace MonsterTradingCardGame
             {
                 dmgMultiplier = getMultiplier(playerCard.CardElement, enemyCard.CardElement);
             }
-            if(getImmunity(playerCard, enemyCard) != ImmuneParty.NONE)
-            {
-                return getImmunity(playerCard, enemyCard) == ImmuneParty.PLAYER ? playerCard : enemyCard;
-            }
+            if (getImmunity(playerCard, enemyCard)) return playerCard;
+            if (getImmunity(enemyCard, playerCard)) return enemyCard;
 
             return (playerCard.Damage * dmgMultiplier) > (enemyCard.Damage / dmgMultiplier) ?
                     playerCard : (playerCard.Damage * dmgMultiplier) < (enemyCard.Damage / dmgMultiplier) ?
@@ -111,24 +103,18 @@ namespace MonsterTradingCardGame
             return 0.5f;
         }
         
-        public ImmuneParty getImmunity(Card playerCard, Card enemyCard)
-        {//yike
+        public bool getImmunity(Card playerCard, Card enemyCard)
+        {
             switch(playerCard.Type)
             {
-                case CardType.GOBLIN when enemyCard.Type == CardType.DRAGON:
-                case CardType.ORKS when enemyCard.Type == CardType.WIZZARD:
-                case CardType.KNIGHT when enemyCard.Type == CardType.SPELL && enemyCard.CardElement == Element.WATER:
-                case CardType.SPELL when enemyCard.Type == CardType.KRAKEN:
-                case CardType.DRAGON when enemyCard.Type == CardType.ELF && enemyCard.CardElement == Element.FIRE:
-                    return ImmuneParty.ENEMY;
                 case CardType.DRAGON when enemyCard.Type == CardType.GOBLIN:
                 case CardType.WIZZARD when enemyCard.Type == CardType.ORKS:
-                case CardType.SPELL when enemyCard.Type == CardType.KNIGHT && playerCard.CardElement == Element.WATER:
+                case CardType.SPELL when playerCard.CardElement == Element.WATER && enemyCard.Type == CardType.KNIGHT:
                 case CardType.KRAKEN when enemyCard.Type == CardType.SPELL:
-                case CardType.ELF when enemyCard.Type == CardType.DRAGON && playerCard.CardElement == Element.FIRE:
-                    return ImmuneParty.PLAYER;
+                case CardType.ELF when playerCard.CardElement == Element.FIRE && enemyCard.Type == CardType.DRAGON:
+                    return true;
             }
-            return ImmuneParty.NONE;
+            return false;
         }
     }
 }
