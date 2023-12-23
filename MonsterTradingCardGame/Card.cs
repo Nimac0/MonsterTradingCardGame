@@ -25,7 +25,6 @@ namespace MonsterTradingCardGame
         ELF,
         SPELL
     }
-
     public abstract class Card
     {
         public IDictionary<Element, string> ElementType = new Dictionary<Element, string>()
@@ -40,10 +39,12 @@ namespace MonsterTradingCardGame
         public Card(Element cardElement)
         {
             this.CardElement = cardElement;
-            this.isUsable = true;
+            this.inTrade = false;
+            this.inPlayingDeck = false;
         }
 
-        public bool isUsable { get; set; }
+        public bool inPlayingDeck { get; set; }
+        public bool inTrade { get; set; }
         public CardType Type { get; set; }
         public Element CardElement { get; set; }
         public string CardName { get; set; }

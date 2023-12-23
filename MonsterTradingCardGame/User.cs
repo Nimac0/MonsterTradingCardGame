@@ -35,11 +35,13 @@ namespace MonsterTradingCardGame
                     case 0:
                         this.CardStack.Add(new MonsterCard(
                             (Element) rand.Next(Enum.GetNames(typeof(Element)).Length),
-                            (CardType) rand.Next(Enum.GetNames(typeof(CardType)).Length)));
+                            (CardType) rand.Next(Enum.GetNames(typeof(CardType)).Length),
+                            rand.Next(15) * 5));
                         break;
                     case 1:
                         this.CardStack.Add(new SpellCard(
-                            (Element) rand.Next(Enum.GetNames(typeof(Element)).Length)));
+                            (Element) rand.Next(Enum.GetNames(typeof(Element)).Length),
+                            rand.Next(15) * 5));
                         break;
                     default: break;
                 }
@@ -51,7 +53,7 @@ namespace MonsterTradingCardGame
 
         }
 
-        public User(string userName, string password,int coins, int eloValue)
+        public User(string userName, string password,int coins, int eloValue) //TODO add playing deck/stack to constructor
         {
             this.UserName = userName;
             this.Password = password;

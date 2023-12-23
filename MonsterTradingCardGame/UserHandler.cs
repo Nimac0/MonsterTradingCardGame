@@ -6,20 +6,21 @@ using System.Threading.Tasks;
 
 namespace MonsterTradingCardGame
 {
-    internal interface IDbHandler
+    internal class UserHandler
     {
-        public void RegisterUser(string requestBody)
+        public string RegisterUser(string requestBody)
         {
-            //TODO db request -> make entry
+            return "registered user";
         }
 
         public string GetUserData(string username)
         {
-            return "placeholder"; //TODO replace with db request
+            return "placeholder user data"; //TODO replace with db request
         }
 
-        public void UpdateUserData(string username)
+        public string UpdateUserData(string username)
         {
+            return "updated user";
             //TODO db request to update userdata 
         }
     }

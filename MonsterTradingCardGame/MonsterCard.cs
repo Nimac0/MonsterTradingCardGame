@@ -21,12 +21,11 @@ namespace MonsterTradingCardGame
             { CardType.ELF, "Elf" }
         };
 
-        public MonsterCard(Element cardElement, CardType monsterType) : base(cardElement)
+        public MonsterCard(Element cardElement, CardType monsterType, int damage) : base(cardElement)
         {
             this.Type = monsterType;
             this.CardName = ElementType[cardElement] + MonsterNames[monsterType];
-            Random rand = new Random((int)DateTime.UtcNow.Ticks);
-            this.Damage = (rand.Next(15)) * 5;
+            this.Damage = damage;
         }
     }
 }

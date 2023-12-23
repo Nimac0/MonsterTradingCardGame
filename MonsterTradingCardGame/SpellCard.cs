@@ -8,12 +8,11 @@ namespace MonsterTradingCardGame
 {
     internal class SpellCard : Card
     {
-        public SpellCard(Element cardElement) : base(cardElement)
+        public SpellCard(Element cardElement, int damage) : base(cardElement)
         {
             this.Type = CardType.SPELL;
             base.CardName = ElementType[cardElement] + "Spell";
-            Random rand = new Random((int)DateTime.UtcNow.Ticks);
-            this.Damage = (rand.Next(15)) * 5;
+            this.Damage = damage;
         }
     }
 }

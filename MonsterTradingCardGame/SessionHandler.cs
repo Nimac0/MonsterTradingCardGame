@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace MonsterTradingCardGame
 {
-    internal interface ISessionHandler
+    internal class SessionHandler
     {
-        public void LoginUser(string requestBody)
+        public string LoginUser(string requestBody)
         {
-
+            return "user logged in";
         }
     }
 }
