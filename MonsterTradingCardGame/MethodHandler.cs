@@ -21,12 +21,12 @@ namespace MonsterTradingCardGame
             switch (destination)
             {
                 case "/users" when method == "POST":
-                    response = userHandler.RegisterUser(body, authToken);
+                    response = userHandler.CreateOrUpdateUser("",body, authToken, true);
                     break;
                 case string s when s.StartsWith("/users/"):
                     string username = s.Substring(7);
                     if (method == "GET") response = userHandler.GetUserData(username, authToken, true);
-                    if (method == "PUT") response = userHandler.UpdateUserData(username);
+                    if (method == "PUT") response = userHandler.CreateOrUpdateUser(username, body, authToken, false); ;
                     break;
                 case "/sessions" when method == "POST":
                     response = sessionHandler.LoginUser(body);

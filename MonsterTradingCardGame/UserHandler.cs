@@ -12,7 +12,7 @@ namespace MonsterTradingCardGame
 {
     internal class UserHandler
     {
-        public string RegisterUser(string requestBody, string authToken)
+        public string CreateOrUpdateUser(string username, string requestBody, string authToken, bool isNew)
         {
             User newUser = new User();
             try
@@ -24,21 +24,32 @@ namespace MonsterTradingCardGame
                Console.WriteLine(e.Message);
             }
 
-            using IDbConnection connection = new NpgsqlConnection(DbHandler.connectionstring);
-            using IDbCommand command = connection.CreateCommand();
-            connection.Open();
+            if (!isNew)
+            { 
+                if (GetUserData(username, authToken, false) == null) return "user doesnt exists";
+            }
+            if ((GetUserData(newUser.Username, authToken, false) != null) && (username != newUser.Username)) return "user already exists cannot change name";
 
-            if (GetUserData(newUser.Username, authToken, false) != null) return "user already exists";
+            DbHandler dbHandler = new DbHandler(isNew ? "INSERT INTO users (username, password, coins, elo) " +
+                "VALUES (@username, @password, @coins, @elo) RETURNING id"
+                : "UPDATE users SET username = @username, password = @password, coins = @coins, elo = @elo WHERE username = @oldusername");
+                    
+            dbHandler.AddParameterWithValue("username", DbType.String, newUser.Username);
+            dbHandler.AddParameterWithValue("password", DbType.String, newUser.Password);
+            dbHandler.AddParameterWithValue("coins", DbType.Int32, 20);
+            dbHandler.AddParameterWithValue("elo", DbType.Int32, 100);
+            if(!isNew) dbHandler.AddParameterWithValue("oldusername", DbType.String, username);
 
-            command.CommandText = "INSERT INTO users (username, password, coins, elo) " +
-                "VALUES (@username, @password, @coins, @elo) RETURNING id";
-            DbHandler.AddParameterWithValue(command, "username", DbType.String, newUser.Username);
-            DbHandler.AddParameterWithValue(command, "password", DbType.String, newUser.Password);
-            DbHandler.AddParameterWithValue(command, "coins", DbType.Int32, 20);
-            DbHandler.AddParameterWithValue(command, "elo", DbType.Int32, 100);
-
-            int id = (int)(command.ExecuteScalar() ?? 0);
-            if (id != 0) return "registered user";
+            if (isNew)
+            {
+                int id = (int)(dbHandler.ExecuteScalar() ?? 0);
+                if (id != 0) return "registered user";
+            }
+            if(!isNew)
+            {
+                dbHandler.ExecuteNonQuery();
+                return "updated user";
+            }
 
             return "???";
         }
@@ -47,13 +58,11 @@ namespace MonsterTradingCardGame
         {
             if (!string.Equals(authToken.TrimEnd('\r', '\n'), username + "-mtcgToken") && authNeeded)
                 return "user not authorized";
-            using IDbConnection connection = new NpgsqlConnection(DbHandler.connectionstring);
-            using IDbCommand command = connection.CreateCommand();
-            connection.Open();
+            DbHandler dbHandler = new DbHandler(@"SELECT * FROM users WHERE username = @username");
 
-            command.CommandText = @"SELECT * FROM users WHERE username = @username";
-            DbHandler.AddParameterWithValue(command, "username", DbType.String, username);
-            using (IDataReader reader = command.ExecuteReader())
+            dbHandler.AddParameterWithValue("username", DbType.String, username);
+            using (IDataReader reader = dbHandler.ExecuteReader())
+            {
                 if (reader.Read())
                 {
                     User newUser = new User()
@@ -66,14 +75,9 @@ namespace MonsterTradingCardGame
                     };
                     return JsonConvert.SerializeObject(newUser);
                 }
+            }
 
             return null;
-        }
-
-        public string UpdateUserData(string username)
-        {
-            return "updated user";
-            //TODO db request to update userdata 
         }
     }
 }

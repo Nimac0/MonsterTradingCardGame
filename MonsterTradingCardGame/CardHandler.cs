@@ -22,12 +22,9 @@ namespace MonsterTradingCardGame
 
         public string GetCards(string requestBody) 
         {
-            using IDbConnection connection = new NpgsqlConnection(DbHandler.connectionstring);
-            using IDbCommand command = connection.CreateCommand();
-            connection.Open();
-
-            command.CommandText = "SELECT cards.id,element,cardtype,damage,indeck,intrade,userid FROM cards WHERE userid = @userid;"; //TODO make function to get id based on username
-            return "card data";
+            /*command.CommandText = "SELECT cards.id,element,cardtype,damage,indeck,intrade,userid FROM cards WHERE userid = @userid;"; //TODO make function to get id based on username
+            return "card data";*/
+            return "placeholder";
         }
 
         public string GetDeck(string requestBody) 
