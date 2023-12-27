@@ -10,22 +10,22 @@ namespace MonsterTradingCardGame
 
     internal class MethodHandler 
     {
-        public string HandleMethod(string method, string destination, string body)
+        public string HandleMethod(string method, string destination, string body, string authToken)
         {
             UserHandler userHandler = new UserHandler();
             SessionHandler sessionHandler = new SessionHandler();
             CardHandler cardHandler = new CardHandler();
             TradeHandler tradeHandler = new TradeHandler();
 
-            string response = "";
+            string response= "";
             switch (destination)
             {
                 case "/users" when method == "POST":
-                    response = userHandler.RegisterUser(body);
+                    response = userHandler.RegisterUser(body, authToken);
                     break;
                 case string s when s.StartsWith("/users/"):
                     string username = s.Substring(7);
-                    if (method == "GET") response = userHandler.GetUserData(username);
+                    if (method == "GET") response = userHandler.GetUserData(username, authToken, true);
                     if (method == "PUT") response = userHandler.UpdateUserData(username);
                     break;
                 case "/sessions" when method == "POST":
@@ -35,10 +35,10 @@ namespace MonsterTradingCardGame
                     response = cardHandler.CreateCardPackage(body);
                     break;
                 case "/transactions/packages" when method == "POST":
-                    response = cardHandler.CreateCardPackage(body);
+                    response = cardHandler.BuyCardPackage(body);
                     break;
                 case "/cards" when method == "GET":
-                    response = cardHandler.CreateCardPackage(body);
+                    response = cardHandler.GetCards(body);
                     break;
                 case "/deck":
                     if (method == "GET") response = cardHandler.GetDeck(body);
@@ -69,11 +69,6 @@ namespace MonsterTradingCardGame
             return response;
         }
 
-        public bool ValidRequest { get; set; }
-
-        public MethodHandler()
-        {
-
-        }
+        
     }
 }

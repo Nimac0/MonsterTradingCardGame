@@ -7,7 +7,7 @@ namespace MonsterTradingCardGame
         static void Main(string[] args)
         {
             ConnectionHandler connectionHandler = new ConnectionHandler();
-            connectionHandler.ProcessInput();
+            connectionHandler.HandleConnection();
         }
     }
 }

@@ -8,13 +8,10 @@ namespace MonsterTradingCardGame
 {
     internal class ResponseHandler
     {
-        public void ErrorHandler(int errorCode)
+        public string HandleResponse(string response)
         {
-            switch(errorCode)
-            {
-                case 422:
-                    break;
-            }
+
+            return "placeholder";
         }
     }
 }

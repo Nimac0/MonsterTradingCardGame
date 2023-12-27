@@ -9,12 +9,13 @@ namespace MonsterTradingCardGame
 {
     public class User
     {
-        public string UserName { get; set; }
-        public string Password { get; set; }
-        public int Coins { get; set; }
-        public int EloValue { get; set; }
-        public List<Card> PlayingDeck { get; set; }
-        public List<Card> CardStack { get; set; }
+        public int? Id { get; set; }
+        public string? Username { get; set; }
+        public string? Password { get; set; }
+        public int? Coins { get; set; }
+        public int? EloValue { get; set; }
+        public List<Card>? PlayingDeck { get; set; }
+        public List<Card>? CardStack { get; set; }
 
 
         public void BuyCards(ref List<Card> playerdeck)
@@ -53,9 +54,14 @@ namespace MonsterTradingCardGame
 
         }
 
+        public User()
+        {
+
+        }
+
         public User(string userName, string password,int coins, int eloValue) //TODO add playing deck/stack to constructor
         {
-            this.UserName = userName;
+            this.Username = userName;
             this.Password = password;
             this.Coins = coins;
             this.EloValue = eloValue;

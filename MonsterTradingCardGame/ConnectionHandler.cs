@@ -12,19 +12,7 @@ namespace MonsterTradingCardGame
 {
     internal class ConnectionHandler
     {
-       /* public Socket EstablishConnection()
-        {
-            Socket serverSocket = new Socket(AddressFamily.InterNetwork,
-                                            SocketType.Stream,
-                                            ProtocolType.Tcp);
-            Console.WriteLine("socket opened");
-            serverSocket.Bind(new IPEndPoint(IPAddress.Loopback, 10001));
-            serverSocket.Listen(6);
-
-            return serverSocket.Accept();
-        }*/
-
-        public void ProcessInput() //TODO rename 
+        public void HandleConnection() //TODO rename 
         {
             MethodHandler methodHandler = new MethodHandler();
             Socket serverSocket = new Socket(AddressFamily.InterNetwork,
@@ -40,7 +28,8 @@ namespace MonsterTradingCardGame
                 Console.WriteLine("waiting for connections...");
                 Socket clientSocket = serverSocket.Accept();
                 Console.WriteLine("after waiting for connections...");
-                var childSocketThread = new Thread(new ThreadStart(() =>
+
+                var childSocketThread = new Thread(new ThreadStart(() => //TODO maybe make own function
                 {
                     Console.WriteLine("thread started");
                     byte[] buffer = new byte[1000];
@@ -48,7 +37,7 @@ namespace MonsterTradingCardGame
                     int bytesRecieved = clientSocket.Receive(buffer);
 
                     string request = Encoding.ASCII.GetString(buffer, 0, bytesRecieved);
-
+                    Console.WriteLine(request);
                     string[] requestParams = request.Split('\n');
                     string[] requestLine = requestParams[0].Split(' ');
 
@@ -67,8 +56,13 @@ namespace MonsterTradingCardGame
                     {
                         requestBody += requestParams[i];
                     }
+                    string authToken = "";
+                    if (httpHeaders.ContainsKey("Authorization"))
+                    {
+                        authToken = httpHeaders["Authorization"];
+                    }
 
-                    string response = methodHandler.HandleMethod(requestLine[0], requestLine[1], requestBody); //method and destination
+                    string response = methodHandler.HandleMethod(requestLine[0], requestLine[1], requestBody, authToken); //method and destination
                     Console.WriteLine(response);
                     clientSocket.Close();
                     Console.WriteLine("socket closed");
