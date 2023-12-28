@@ -37,7 +37,6 @@ namespace MonsterTradingCardGame
                     int bytesRecieved = clientSocket.Receive(buffer);
 
                     string request = Encoding.ASCII.GetString(buffer, 0, bytesRecieved);
-                    Console.WriteLine(request);
                     string[] requestParams = request.Split('\n');
                     string[] requestLine = requestParams[0].Split(' ');
 

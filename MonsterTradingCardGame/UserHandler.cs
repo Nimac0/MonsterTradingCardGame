@@ -26,7 +26,7 @@ namespace MonsterTradingCardGame
 
             if (!isNew)
             { 
-                if (GetUserData(username, authToken, false) == null) return "user doesnt exists";
+                if (GetUserData(username, authToken, true) == null) return "user doesnt exists";
             }
             if ((GetUserData(newUser.Username, authToken, false) != null) && (username != newUser.Username)) return "user already exists cannot change name";
 
@@ -56,8 +56,20 @@ namespace MonsterTradingCardGame
 
         public string GetUserData(string username, string authToken, bool authNeeded) // TODO: add join for cards, check if user is authorized
         {
-            if (!string.Equals(authToken.TrimEnd('\r', '\n'), username + "-mtcgToken") && authNeeded)
-                return "user not authorized";
+            authToken = authToken.TrimEnd('\r', '\n');
+            string authorizedUser = "";
+
+            if (!SessionHandler.tokenMap.ContainsKey(authToken))
+            {
+                return "token not found";
+            }
+
+            if (!SessionHandler.userMap.ContainsKey(SessionHandler.tokenMap[authToken]))
+            {
+                return "id not found";
+            }
+            authorizedUser = SessionHandler.userMap[SessionHandler.tokenMap[authToken]].Username;
+            if (!string.Equals(username, authorizedUser) && authNeeded) return "user not authorized";
             DbHandler dbHandler = new DbHandler(@"SELECT * FROM users WHERE username = @username");
 
             dbHandler.AddParameterWithValue("username", DbType.String, username);

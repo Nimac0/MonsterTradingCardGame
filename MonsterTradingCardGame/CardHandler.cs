@@ -1,4 +1,5 @@
-﻿using Npgsql;
+﻿using Newtonsoft.Json;
+using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -22,9 +23,10 @@ namespace MonsterTradingCardGame
 
         public string GetCards(string requestBody) 
         {
-            /*command.CommandText = "SELECT cards.id,element,cardtype,damage,indeck,intrade,userid FROM cards WHERE userid = @userid;"; //TODO make function to get id based on username
-            return "card data";*/
-            return "placeholder";
+            DbHandler dbHandler = new DbHandler(@"SELECT cards.id,element,cardtype,damage,indeck,intrade,userid FROM cards WHERE userid = @userid;");
+            
+            //TODO make function to get id based on username
+            return "card data";
         }
 
         public string GetDeck(string requestBody) 
