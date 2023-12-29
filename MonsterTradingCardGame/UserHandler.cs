@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Npgsql;
 using Npgsql.Replication.PgOutput.Messages;
 using System;
@@ -26,9 +27,9 @@ namespace MonsterTradingCardGame
 
             if (!isNew)
             { 
-                if (GetUserData(username, authToken, true) == null) return "user doesnt exists";
+                if (GetUserData(username, authToken, true) == null) return Response.CreateResponse("404", "Not Found", "", "application/json");
             }
-            if ((GetUserData(newUser.Username, authToken, false) != null) && (username != newUser.Username)) return "user already exists cannot change name";
+            if ((GetUserData(newUser.Username, authToken, false) != null) && (username != newUser.Username)) return Response.CreateResponse("409", "Conflict", "", "application/json");
 
             DbHandler dbHandler = new DbHandler(isNew ? "INSERT INTO users (username, password, coins, elo) " +
                 "VALUES (@username, @password, @coins, @elo) RETURNING id"
@@ -43,12 +44,12 @@ namespace MonsterTradingCardGame
             if (isNew)
             {
                 int id = (int)(dbHandler.ExecuteScalar() ?? 0);
-                if (id != 0) return "registered user";
+                if (id != 0) return Response.CreateResponse("201", "Created", "", "application/json");
             }
             if(!isNew)
             {
                 dbHandler.ExecuteNonQuery();
-                return "updated user";
+                return Response.CreateResponse("200", "OK", "", "application/json");
             }
 
             return "???";
@@ -57,19 +58,18 @@ namespace MonsterTradingCardGame
         public string GetUserData(string username, string authToken, bool authNeeded) // TODO: add join for cards, check if user is authorized
         {
             authToken = authToken.TrimEnd('\r', '\n');
-            string authorizedUser = "";
 
             if (!SessionHandler.tokenMap.ContainsKey(authToken))
             {
-                return "token not found";
+                return Response.CreateResponse("401", "Unauthorized", "", "application/json");
             }
 
             if (!SessionHandler.userMap.ContainsKey(SessionHandler.tokenMap[authToken]))
             {
-                return "id not found";
+                return Response.CreateResponse("401", "Unauthorized", "", "application/json");
             }
-            authorizedUser = SessionHandler.userMap[SessionHandler.tokenMap[authToken]].Username;
-            if (!string.Equals(username, authorizedUser) && authNeeded) return "user not authorized";
+            string authorizedUser = SessionHandler.userMap[SessionHandler.tokenMap[authToken]].Username;
+            if (!string.Equals(username, authorizedUser) && authNeeded) return Response.CreateResponse("401", "Unauthorized", "", "application/json"); ;
             DbHandler dbHandler = new DbHandler(@"SELECT * FROM users WHERE username = @username");
 
             dbHandler.AddParameterWithValue("username", DbType.String, username);
@@ -85,11 +85,11 @@ namespace MonsterTradingCardGame
                         Coins = reader.GetInt32(3),
                         EloValue = reader.GetInt32(4)
                     };
-                    return JsonConvert.SerializeObject(newUser);
+                    return Response.CreateResponse("200", "OK", JsonConvert.SerializeObject(newUser), "application/json"); ;
                 }
             }
 
-            return null;
+            return Response.CreateResponse("404", "Not Found", "", "application/json");
         }
     }
 }

@@ -44,10 +44,10 @@ namespace MonsterTradingCardGame
                     tokenMap.Add(token, (int)newUser.Id);
                     userMap.Add((int)newUser.Id, newUser);
 
-                    return "user logged in";
+                    return Response.CreateResponse("200", "OK", "", "application/json");
                 }
             }
-            return "invalid credentials";
+            return Response.CreateResponse("401", "Unauthorized", "", "application/json");
         }
 
         public string CreateToken(string username) //this is not the ideal way of doing tokens bc predictable and insecure but the curl script uses tokens like this and i dont want to change the script that much :P

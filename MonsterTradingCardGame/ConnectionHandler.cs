@@ -63,6 +63,7 @@ namespace MonsterTradingCardGame
 
                     string response = methodHandler.HandleMethod(requestLine[0], requestLine[1], requestBody, authToken); //method and destination
                     Console.WriteLine(response);
+                    clientSocket.Send(Encoding.ASCII.GetBytes(response));
                     clientSocket.Close();
                     Console.WriteLine("socket closed");
                 }));

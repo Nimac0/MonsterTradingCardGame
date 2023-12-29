@@ -8,29 +8,16 @@ namespace MonsterTradingCardGame
 {
     internal class Response
     {
-        private string _responseCode;
-        private string _responseText;
-        private string _responseBody;
-        private string _responseType;
-
-        public Response(string responseCode, string responseText, string responseBody, string responseType)
-        {
-            this._responseCode = responseCode;
-            this._responseText = responseText;
-            this._responseBody = responseBody;
-            this._responseType = responseType;
-        }
-
-        public string CreateResponse()
+        public static string CreateResponse(string responseCode, string responseText, string responseBody, string responseType)
         {
             string response =
-                "HTTP/1.1" + " " + this._responseCode + " " + this._responseText + "\r\n" +
+                "HTTP/1.1" + " " + responseCode + " " + responseText + "\r\n" +
                 "Date: " + DateTime.Now + "\r\n" +
-                "Content-Length: " + this._responseBody.Length + "\r\n" +
-                "Content-Type: " + this._responseType + "\r\n" +
+                "Content-Length: " + responseBody.Length + "\r\n" +
+                "Content-Type: " + responseType + "\r\n" +
                 "Connection: Closed" + "\r\n" +
                 "\r\n" +
-                this._responseBody;
+                responseBody;
 
             return response;
         }
