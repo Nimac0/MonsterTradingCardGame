@@ -62,8 +62,8 @@ namespace MonsterTradingCardGame
                     //TODO make it so two users can be added to fight constructor
                     break;
                 case "/tradings":
-                    if (method == "GET") response = tradeHandler.GetTrades();
-                    if (method == "POST") response = tradeHandler.PostTrade(body);
+                    if (method == "GET") response = tradeHandler.GetTrades(authToken);
+                    if (method == "POST") response = tradeHandler.PostTrade(authToken,body);
                     break;
                 case string s when s.StartsWith("/tradings/"):
 

@@ -49,7 +49,7 @@ namespace MonsterTradingCardGame
         public string GetUserData(string username, string authToken, bool authNeeded)
         {
             string authorizedUser = SessionHandler.GetUsernameByToken(authToken);
-            if (!string.Equals(username, authorizedUser) && authNeeded) return Response.CreateResponse("401", "Unauthorized", "", "application/json");
+            if (!string.Equals(username, authorizedUser) && authNeeded) return Response.CreateResponse("401", "Unauthorised", "", "application/json");
             DbHandler dbHandler = new DbHandler(@"SELECT * FROM users WHERE username = @username");
 
             dbHandler.AddParameterWithValue("username", DbType.String, username);
@@ -83,7 +83,7 @@ namespace MonsterTradingCardGame
             }
             string getUserResponse = GetUserData(username, authToken, true);
 
-            if (string.Equals(getUserResponse.Substring(0, getUserResponse.IndexOf(Environment.NewLine)), "HTTP/1.1 401 Unauthorized"))//checks if getUser returned 401
+            if (string.Equals(getUserResponse.Substring(0, getUserResponse.IndexOf(Environment.NewLine)), "HTTP/1.1 401 Unauthorised"))//checks if getUser returned 401
             {
                 return getUserResponse;
             }
@@ -104,7 +104,7 @@ namespace MonsterTradingCardGame
         public string GetUserStats(string authToken, bool getAll)
         {
             string authorizedUser = SessionHandler.GetUsernameByToken(authToken);
-            if (string.IsNullOrEmpty(authorizedUser) && !getAll) return Response.CreateResponse("401", "Unauthorized", "", "application/json");
+            if (string.IsNullOrEmpty(authorizedUser) && !getAll) return Response.CreateResponse("401", "Unauthorised", "", "application/json");
             DbHandler dbHandler = new DbHandler(getAll ? @"SELECT name, elo, wins, losses FROM users;"
                 : @"SELECT name, elo, wins, losses FROM users WHERE username = @username;");
 

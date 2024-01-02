@@ -47,7 +47,7 @@ namespace MonsterTradingCardGame
                     return Response.CreateResponse("200", "OK", "", "application/json");
                 }
             }
-            return Response.CreateResponse("401", "Unauthorized", "", "application/json");
+            return Response.CreateResponse("401", "Unauthorised", "", "application/json");
         }
 
         public string CreateToken(string username) //this is not the ideal way of doing tokens bc predictable and insecure but the curl script uses tokens like this and i dont want to change the script that much :P
