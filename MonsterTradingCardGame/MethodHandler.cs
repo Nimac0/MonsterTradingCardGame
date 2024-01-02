@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
 namespace MonsterTradingCardGame
@@ -38,7 +40,10 @@ namespace MonsterTradingCardGame
                     response = cardHandler.BuyCardPackage(body);
                     break;
                 case "/cards" when method == "GET":
-                    response = cardHandler.GetCards(body);
+                    response = JsonConvert.SerializeObject(cardHandler.GetCards(authToken), Formatting.Indented); // TODO json serialize
+                    if (response == null) return Response.CreateResponse("204", "No Content", response, "application/json");
+                    response = Response.CreateResponse("200", "OK", response, "application/json");
+
                     break;
                 case "/deck":
                     if (method == "GET") response = cardHandler.GetDeck(body);

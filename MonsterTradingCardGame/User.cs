@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MonsterTradingCardGame
 {
-    public class User
+    internal class User
     {
         public int? Id { get; set; }
         public string? Username { get; set; }
@@ -16,38 +16,8 @@ namespace MonsterTradingCardGame
         public int? EloValue { get; set; }
         public List<Card>? PlayingDeck { get; set; }
         public List<Card>? CardStack { get; set; }
-
-
-        public void BuyCards(ref List<Card> playerdeck)
-        {
-            Random rand = new Random((int)DateTime.UtcNow.Ticks);
-
-            if(this.Coins <= 0)
-            {
-                Console.WriteLine("Nope");
-            }
-
-            this.Coins = this.Coins - 5;
-
-            for(int i = 0; i < 5; i++)
-            {
-                switch (rand.Next(2))
-                {
-                    case 0:
-                        this.CardStack.Add(new MonsterCard(
-                            (Element) rand.Next(Enum.GetNames(typeof(Element)).Length),
-                            (CardType) rand.Next(Enum.GetNames(typeof(CardType)).Length),
-                            rand.Next(15) * 5));
-                        break;
-                    case 1:
-                        this.CardStack.Add(new SpellCard(
-                            (Element) rand.Next(Enum.GetNames(typeof(Element)).Length),
-                            rand.Next(15) * 5));
-                        break;
-                    default: break;
-                }
-            }
-        }
+        public int Wins { get; set; }
+        public int Losses { get; set; }
 
         public void choosePlayingCards()
         {

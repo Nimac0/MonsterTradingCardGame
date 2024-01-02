@@ -55,5 +55,22 @@ namespace MonsterTradingCardGame
             string token = username + "-mtcgToken";
             return token;
         }
+
+        public static string getUsernameByToken(string authToken)
+        {
+            authToken = authToken.TrimEnd('\r', '\n');
+            Console.WriteLine(authToken);
+
+            if (!SessionHandler.tokenMap.ContainsKey(authToken))
+            {
+                return "";
+            }
+
+            if (!SessionHandler.userMap.ContainsKey(SessionHandler.tokenMap[authToken]))
+            {
+                return "";
+            }
+            return SessionHandler.userMap[SessionHandler.tokenMap[authToken]].Username;
+        }
     }
 }

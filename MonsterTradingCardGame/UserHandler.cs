@@ -38,7 +38,7 @@ namespace MonsterTradingCardGame
             dbHandler.AddParameterWithValue("username", DbType.String, newUser.Username);
             dbHandler.AddParameterWithValue("password", DbType.String, newUser.Password);
             dbHandler.AddParameterWithValue("coins", DbType.Int32, 20);
-            dbHandler.AddParameterWithValue("elo", DbType.Int32, 100);
+            dbHandler.AddParameterWithValue("elo", DbType.Int32, 100); // TODO add wins and losses (also to db)
             if(!isNew) dbHandler.AddParameterWithValue("oldusername", DbType.String, username);
 
             if (isNew)
@@ -57,19 +57,8 @@ namespace MonsterTradingCardGame
 
         public string GetUserData(string username, string authToken, bool authNeeded) // TODO: add join for cards, check if user is authorized
         {
-            authToken = authToken.TrimEnd('\r', '\n');
-
-            if (!SessionHandler.tokenMap.ContainsKey(authToken))
-            {
-                return Response.CreateResponse("401", "Unauthorized", "", "application/json");
-            }
-
-            if (!SessionHandler.userMap.ContainsKey(SessionHandler.tokenMap[authToken]))
-            {
-                return Response.CreateResponse("401", "Unauthorized", "", "application/json");
-            }
-            string authorizedUser = SessionHandler.userMap[SessionHandler.tokenMap[authToken]].Username;
-            if (!string.Equals(username, authorizedUser) && authNeeded) return Response.CreateResponse("401", "Unauthorized", "", "application/json"); ;
+            string authorizedUser = SessionHandler.getUsernameByToken(authToken);
+            if (!string.Equals(username, authorizedUser) && authNeeded) return Response.CreateResponse("401", "Unauthorized", "", "application/json");
             DbHandler dbHandler = new DbHandler(@"SELECT * FROM users WHERE username = @username");
 
             dbHandler.AddParameterWithValue("username", DbType.String, username);
@@ -77,15 +66,17 @@ namespace MonsterTradingCardGame
             {
                 if (reader.Read())
                 {
+                    CardHandler cardHandler = new CardHandler();
                     User newUser = new User()
                     {
                         Id = reader.GetInt32(0),
                         Username = reader.GetString(1),
                         Password = reader.GetString(2),
                         Coins = reader.GetInt32(3),
-                        EloValue = reader.GetInt32(4)
+                        EloValue = reader.GetInt32(4),
+                        CardStack = cardHandler.GetCards(authToken)
                     };
-                    return Response.CreateResponse("200", "OK", JsonConvert.SerializeObject(newUser), "application/json"); ;
+                    return Response.CreateResponse("200", "OK", JsonConvert.SerializeObject(newUser), "application/json");
                 }
             }
 

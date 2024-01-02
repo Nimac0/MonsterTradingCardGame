@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace MonsterTradingCardGame
 {
 
-    internal class MonsterCard : Card
+   /* internal class MonsterCard : Card
     {
 
         public IDictionary<CardType, string> MonsterNames = new Dictionary<CardType, string>()
@@ -27,6 +27,6 @@ namespace MonsterTradingCardGame
             this.CardName = ElementType[cardElement] + MonsterNames[monsterType];
             this.Damage = damage;
         }
-    }
+    }*/
 }
 

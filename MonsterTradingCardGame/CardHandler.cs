@@ -21,12 +21,39 @@ namespace MonsterTradingCardGame
             return "bought package";
         }
 
-        public string GetCards(string requestBody) 
+        public List<Card> GetCards(string authToken) 
         {
+            DbHandler getIdByUsername = new DbHandler(@"SELECT users.id FROM users WHERE username = @username");
+            string username = SessionHandler.getUsernameByToken(authToken);
+            Console.WriteLine("current username: "+ username);
+            getIdByUsername.AddParameterWithValue("username", DbType.String, username);
+
+            int? userId = null;
+            using (IDataReader reader = getIdByUsername.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    User newUser = new User()
+                    {
+                        Id = reader.GetInt32(0)
+                    };
+                    userId = newUser.Id;
+                    Console.WriteLine(newUser.Id);
+                }
+            }
+            List<Card> cardCollection = new List<Card>();
             DbHandler dbHandler = new DbHandler(@"SELECT cards.id,element,cardtype,damage,indeck,intrade,userid FROM cards WHERE userid = @userid;");
-            
-            //TODO make function to get id based on username
-            return "card data";
+            dbHandler.AddParameterWithValue("userId", DbType.Int32, userId);
+
+            using (IDataReader reader = dbHandler.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    Card newCard = new Card((Element)reader.GetInt32(1), (CardType)reader.GetInt32(2), reader.GetFloat(3));
+                    cardCollection.Add(newCard);
+                }
+                return cardCollection;
+            }
         }
 
         public string GetDeck(string requestBody) 

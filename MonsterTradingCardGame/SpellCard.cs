@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MonsterTradingCardGame
 {
-    internal class SpellCard : Card
+    /*internal class SpellCard : Card
     {
         public SpellCard(Element cardElement, int damage) : base(cardElement)
         {
@@ -14,5 +14,5 @@ namespace MonsterTradingCardGame
             base.CardName = ElementType[cardElement] + "Spell";
             this.Damage = damage;
         }
-    }
+    }*/
 }

@@ -78,7 +78,7 @@ namespace MonsterTradingCardGame
         {
             float dmgMultiplier = 1;
 
-            if (playerCard.GetType() == typeof(SpellCard) || enemyCard.GetType() == typeof(SpellCard))
+            if (playerCard.Type == CardType.SPELL || enemyCard.Type == CardType.SPELL)
             {
                 dmgMultiplier = getMultiplier(playerCard.CardElement, enemyCard.CardElement);
             }

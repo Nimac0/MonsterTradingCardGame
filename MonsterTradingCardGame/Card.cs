@@ -25,29 +25,25 @@ namespace MonsterTradingCardGame
         ELF,
         SPELL
     }
-    public abstract class Card
+
+    internal class Card
     {
-        public IDictionary<Element, string> ElementType = new Dictionary<Element, string>()
-        {
-            { Element.WATER, "Water" },
-            { Element.FIRE, "Fire" },
-            { Element.NORMAL, "Regular" }
-        };
-
-        
-
-        public Card(Element cardElement)
+        public Card(Element cardElement, CardType monsterType, float damage)
         {
             this.CardElement = cardElement;
+            this.Type = monsterType;
+            this.CardName = cardElement.ToString() + monsterType.ToString();
+            this.Damage = damage;
             this.inTrade = false;
             this.inPlayingDeck = false;
         }
-
-        public bool inPlayingDeck { get; set; }
-        public bool inTrade { get; set; }
+ 
+        public int cardId { get; set; }
         public CardType Type { get; set; }
         public Element CardElement { get; set; }
         public string CardName { get; set; }
-        public int Damage { get; set; }
+        public float Damage { get; set; }
+        public bool inPlayingDeck { get; set; }
+        public bool inTrade { get; set; }
     }
 }
