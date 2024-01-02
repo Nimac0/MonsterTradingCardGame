@@ -16,27 +16,13 @@ namespace MonsterTradingCardGame
         public int? EloValue { get; set; }
         public List<Card>? PlayingDeck { get; set; }
         public List<Card>? CardStack { get; set; }
-        public int Wins { get; set; }
-        public int Losses { get; set; }
-
-        public void choosePlayingCards()
-        {
-
-        }
+        public int? Wins { get; set; }
+        public int? Losses { get; set; }
+        public UserData userdata;
 
         public User()
         {
 
-        }
-
-        public User(string userName, string password,int coins, int eloValue) //TODO add playing deck/stack to constructor
-        {
-            this.Username = userName;
-            this.Password = password;
-            this.Coins = coins;
-            this.EloValue = eloValue;
-            this.PlayingDeck = new List<Card>(4) { };
-            this.CardStack = new List<Card> { };
         }
 
     }

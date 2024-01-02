@@ -28,17 +28,18 @@ namespace MonsterTradingCardGame
 
     internal class Card
     {
-        public Card(Element cardElement, CardType monsterType, float damage)
+        public Card(string cardId, Element cardElement, CardType monsterType, float damage, bool inDeck, bool inTrade)
         {
+            this.cardId = cardId;
             this.CardElement = cardElement;
             this.Type = monsterType;
             this.CardName = cardElement.ToString() + monsterType.ToString();
             this.Damage = damage;
-            this.inTrade = false;
-            this.inPlayingDeck = false;
+            this.inPlayingDeck = inDeck;
+            this.inTrade = inTrade;
         }
  
-        public int cardId { get; set; }
+        public string cardId { get; set; }
         public CardType Type { get; set; }
         public Element CardElement { get; set; }
         public string CardName { get; set; }

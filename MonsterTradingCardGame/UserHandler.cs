@@ -8,12 +8,13 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.WebRequestMethods;
 
 namespace MonsterTradingCardGame
 {
     internal class UserHandler
     {
-        public string CreateOrUpdateUser(string username, string requestBody, string authToken, bool isNew)
+        public string CreateUser(string username, string requestBody, string authToken)
         {
             User newUser = new User();
             try
@@ -24,40 +25,30 @@ namespace MonsterTradingCardGame
             {
                Console.WriteLine(e.Message);
             }
+            if (GetUserData(newUser.Username, authToken, false) != null) return Response.CreateResponse("409", "Conflict", "", "application/json");
 
-            if (!isNew)
-            { 
-                if (GetUserData(username, authToken, true) == null) return Response.CreateResponse("404", "Not Found", "", "application/json");
-            }
-            if ((GetUserData(newUser.Username, authToken, false) != null) && (username != newUser.Username)) return Response.CreateResponse("409", "Conflict", "", "application/json");
-
-            DbHandler dbHandler = new DbHandler(isNew ? "INSERT INTO users (username, password, coins, elo) " +
-                "VALUES (@username, @password, @coins, @elo) RETURNING id"
-                : "UPDATE users SET username = @username, password = @password, coins = @coins, elo = @elo WHERE username = @oldusername");
-                    
+            DbHandler dbHandler = new DbHandler("INSERT INTO users (username, password, coins, elo, wins, losses, name, bio, image) " +
+                "VALUES (@username, @password, @coins, @elo, @wins, @losses, @name, @bio, @image) RETURNING id");
+  
             dbHandler.AddParameterWithValue("username", DbType.String, newUser.Username);
             dbHandler.AddParameterWithValue("password", DbType.String, newUser.Password);
             dbHandler.AddParameterWithValue("coins", DbType.Int32, 20);
-            dbHandler.AddParameterWithValue("elo", DbType.Int32, 100); // TODO add wins and losses (also to db)
-            if(!isNew) dbHandler.AddParameterWithValue("oldusername", DbType.String, username);
+            dbHandler.AddParameterWithValue("elo", DbType.Int32, 100);
+            dbHandler.AddParameterWithValue("wins", DbType.Int32, 0);
+            dbHandler.AddParameterWithValue("losses", DbType.Int32, 0);
+            dbHandler.AddParameterWithValue("name", DbType.String, " "); //placeholders to avoid null
+            dbHandler.AddParameterWithValue("bio", DbType.String, " ");
+            dbHandler.AddParameterWithValue("image", DbType.String, " ");
 
-            if (isNew)
-            {
-                int id = (int)(dbHandler.ExecuteScalar() ?? 0);
-                if (id != 0) return Response.CreateResponse("201", "Created", "", "application/json");
-            }
-            if(!isNew)
-            {
-                dbHandler.ExecuteNonQuery();
-                return Response.CreateResponse("200", "OK", "", "application/json");
-            }
+            int id = (int)(dbHandler.ExecuteScalar() ?? 0);
+            if (id != 0) return Response.CreateResponse("201", "Created", "", "application/json");
 
             return "???";
         }
 
-        public string GetUserData(string username, string authToken, bool authNeeded) // TODO: add join for cards, check if user is authorized
+        public string GetUserData(string username, string authToken, bool authNeeded)
         {
-            string authorizedUser = SessionHandler.getUsernameByToken(authToken);
+            string authorizedUser = SessionHandler.GetUsernameByToken(authToken);
             if (!string.Equals(username, authorizedUser) && authNeeded) return Response.CreateResponse("401", "Unauthorized", "", "application/json");
             DbHandler dbHandler = new DbHandler(@"SELECT * FROM users WHERE username = @username");
 
@@ -66,21 +57,48 @@ namespace MonsterTradingCardGame
             {
                 if (reader.Read())
                 {
-                    CardHandler cardHandler = new CardHandler();
-                    User newUser = new User()
+                    UserData newUserData = new UserData()
                     {
-                        Id = reader.GetInt32(0),
-                        Username = reader.GetString(1),
-                        Password = reader.GetString(2),
-                        Coins = reader.GetInt32(3),
-                        EloValue = reader.GetInt32(4),
-                        CardStack = cardHandler.GetCards(authToken)
+                        Name = reader.GetString(7),
+                        Bio = reader.GetString(8),
+                        Image = reader.GetString(9)
                     };
-                    return Response.CreateResponse("200", "OK", JsonConvert.SerializeObject(newUser), "application/json");
+                    return Response.CreateResponse("200", "OK", JsonConvert.SerializeObject(newUserData), "application/json");
                 }
             }
-
+            if (!authNeeded) return null;
             return Response.CreateResponse("404", "Not Found", "", "application/json");
+        }
+
+        public string UpdateUser(string username, string requestBody, string authToken)
+        {
+            UserData newUserData = new UserData();
+            try
+            {
+                newUserData = JsonConvert.DeserializeObject<UserData>(requestBody);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            string getUserResponse = GetUserData(username, authToken, true);
+
+            if (string.Equals(getUserResponse.Substring(0, getUserResponse.IndexOf(Environment.NewLine)), "HTTP/1.1 401 Unauthorized"))//checks if getUser returned 401
+            {
+                return getUserResponse;
+            }
+
+            if (getUserResponse  == null) return Response.CreateResponse("404", "Not Found", "", "application/json");
+
+            DbHandler dbHandler = new DbHandler("UPDATE users SET name = @displayname, bio = @bio, image = @image WHERE username = @username");
+
+            dbHandler.AddParameterWithValue("username", DbType.String, username);
+            dbHandler.AddParameterWithValue("displayname", DbType.String, newUserData.Name);
+            dbHandler.AddParameterWithValue("bio", DbType.String, newUserData.Bio);
+            dbHandler.AddParameterWithValue("image", DbType.String, newUserData.Image);
+
+            dbHandler.ExecuteNonQuery();
+            return Response.CreateResponse("200", "OK", "", "application/json");
         }
     }
 }

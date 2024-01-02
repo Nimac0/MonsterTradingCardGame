@@ -56,7 +56,7 @@ namespace MonsterTradingCardGame
             return token;
         }
 
-        public static string getUsernameByToken(string authToken)
+        public static string GetUsernameByToken(string authToken)
         {
             authToken = authToken.TrimEnd('\r', '\n');
             Console.WriteLine(authToken);
@@ -71,6 +71,26 @@ namespace MonsterTradingCardGame
                 return "";
             }
             return SessionHandler.userMap[SessionHandler.tokenMap[authToken]].Username;
+        }
+
+        public static int? GetIdByUsername(string username)
+        {
+            DbHandler getIdByUsername = new DbHandler(@"SELECT users.id FROM users WHERE username = @username");
+
+            getIdByUsername.AddParameterWithValue("username", DbType.String, username);
+
+            using (IDataReader reader = getIdByUsername.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    User newUser = new User()
+                    {
+                        Id = reader.GetInt32(0)
+                    };
+                    return newUser.Id;
+                }
+            }
+            return null;
         }
     }
 }

@@ -23,12 +23,12 @@ namespace MonsterTradingCardGame
             switch (destination)
             {
                 case "/users" when method == "POST":
-                    response = userHandler.CreateOrUpdateUser("",body, authToken, true);
+                    response = userHandler.CreateUser("",body, authToken);
                     break;
                 case string s when s.StartsWith("/users/"):
                     string username = s.Substring(7);
                     if (method == "GET") response = userHandler.GetUserData(username, authToken, true);
-                    if (method == "PUT") response = userHandler.CreateOrUpdateUser(username, body, authToken, false); ;
+                    if (method == "PUT") response = userHandler.UpdateUser(username, body, authToken); ;
                     break;
                 case "/sessions" when method == "POST":
                     response = sessionHandler.LoginUser(body);
@@ -40,14 +40,17 @@ namespace MonsterTradingCardGame
                     response = cardHandler.BuyCardPackage(body);
                     break;
                 case "/cards" when method == "GET":
-                    response = JsonConvert.SerializeObject(cardHandler.GetCards(authToken), Formatting.Indented); // TODO json serialize
+                    response = JsonConvert.SerializeObject(cardHandler.GetCardsOrDeck(authToken, false), Formatting.Indented);
                     if (response == null) return Response.CreateResponse("204", "No Content", response, "application/json");
                     response = Response.CreateResponse("200", "OK", response, "application/json");
-
                     break;
                 case "/deck":
-                    if (method == "GET") response = cardHandler.GetDeck(body);
-                    if (method == "PUT") response = cardHandler.CreateDeck(body);
+                    if (method == "GET"){
+                        response = JsonConvert.SerializeObject(cardHandler.GetCardsOrDeck(authToken, true), Formatting.Indented);
+                        if (response == null) return Response.CreateResponse("204", "No Content", response, "application/json");
+                        response = Response.CreateResponse("200", "OK", response, "application/json");
+                    }
+                    if (method == "PUT") response = cardHandler.ChooseDeck(body, authToken);
                     break;
                 case "/stats" when method == "GET":
                     
