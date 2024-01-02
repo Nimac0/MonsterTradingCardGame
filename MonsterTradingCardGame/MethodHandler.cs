@@ -53,10 +53,10 @@ namespace MonsterTradingCardGame
                     if (method == "PUT") response = cardHandler.ChooseDeck(body, authToken);
                     break;
                 case "/stats" when method == "GET":
-                    
+                    response = userHandler.GetUserStats(authToken, false);
                     break;
                 case "/scoreboard" when method == "GET":
-
+                    response = userHandler.GetUserStats(authToken, true);
                     break;
                 case "/battles" when method == "POST":
                     //TODO make it so two users can be added to fight constructor

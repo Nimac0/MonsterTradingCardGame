@@ -8,6 +8,7 @@ namespace MonsterTradingCardGame
 {
     internal class UserStats
     {
+        public string? Name { get; set; }
         public int? EloValue { get; set; }
         public int? Wins { get; set; }
         public int? Losses { get; set; }

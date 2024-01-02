@@ -68,14 +68,15 @@ namespace MonsterTradingCardGame
             DbHandler clearDeck = new DbHandler(@"UPDATE cards SET indeck = FALSE WHERE userid = @userid;");
             clearDeck.AddParameterWithValue("userid", DbType.Int32, userId);
             clearDeck.ExecuteNonQuery();
-
+            DbHandler putInDeck = new DbHandler(@"UPDATE cards SET indeck = TRUE WHERE id IN (@id1, @id2, @id3, @id4);");
+            
+            int i = 1;
             foreach (string cardId in cardIds)
             {
-                DbHandler putInDeck = new DbHandler(@"UPDATE cards SET indeck = TRUE WHERE id = @cardid;");
                 Console.WriteLine(cardId);
-                putInDeck.AddParameterWithValue("cardid", DbType.String, cardId);
-                putInDeck.ExecuteNonQuery();
+                putInDeck.AddParameterWithValue("id" + i++, DbType.String, cardId);
             }
+            putInDeck.ExecuteNonQuery();
             return Response.CreateResponse("200", "OK", "", "application/json");
         }
     }

@@ -100,5 +100,33 @@ namespace MonsterTradingCardGame
             dbHandler.ExecuteNonQuery();
             return Response.CreateResponse("200", "OK", "", "application/json");
         }
+
+        public string GetUserStats(string authToken, bool getAll)
+        {
+            string authorizedUser = SessionHandler.GetUsernameByToken(authToken);
+            if (string.IsNullOrEmpty(authorizedUser) && !getAll) return Response.CreateResponse("401", "Unauthorized", "", "application/json");
+            DbHandler dbHandler = new DbHandler(getAll ? @"SELECT name, elo, wins, losses FROM users;"
+                : @"SELECT name, elo, wins, losses FROM users WHERE username = @username;");
+
+            if(!getAll) dbHandler.AddParameterWithValue("username", DbType.String, authorizedUser);
+            List<UserStats> userStats = new List<UserStats>();
+
+            using (IDataReader reader = dbHandler.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    UserStats newUserStats = new UserStats()
+                    {
+                        Name = reader.GetString(0),
+                        EloValue = reader.GetInt32(1),
+                        Wins = reader.GetInt32(2),
+                        Losses = reader.GetInt32(3)
+                    };
+                    userStats.Add(newUserStats);
+                }
+                if(userStats.Count != 0) return Response.CreateResponse("200", "OK", JsonConvert.SerializeObject(getAll ? userStats : userStats[0]), "application/json");
+            }
+            return Response.CreateResponse("404", "Not Found", "", "application/json");
+        }
     }
 }
