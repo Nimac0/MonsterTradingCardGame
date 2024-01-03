@@ -34,19 +34,21 @@ namespace MonsterTradingCardGame
                     response = sessionHandler.LoginUser(body);
                     break;
                 case "/packages" when method == "POST":
-                    response = cardHandler.CreateCardPackage(body);
+                    response = cardHandler.CreateCardPackage(body, authToken);
                     break;
                 case "/transactions/packages" when method == "POST":
                     response = cardHandler.BuyCardPackage(body);
                     break;
                 case "/cards" when method == "GET":
                     response = JsonConvert.SerializeObject(cardHandler.GetCardsOrDeck(authToken, false), Formatting.Indented);
+                    if (response == "null") return Response.CreateResponse("401", "Unauthorised", response, "application/json");
                     if (response == null) return Response.CreateResponse("204", "No Content", response, "application/json");
                     response = Response.CreateResponse("200", "OK", response, "application/json");
                     break;
                 case "/deck":
                     if (method == "GET"){
                         response = JsonConvert.SerializeObject(cardHandler.GetCardsOrDeck(authToken, true), Formatting.Indented);
+                        if(response == "null") return Response.CreateResponse("401", "Unauthorised", response, "application/json");
                         if (response == null) return Response.CreateResponse("204", "No Content", response, "application/json");
                         response = Response.CreateResponse("200", "OK", response, "application/json");
                     }

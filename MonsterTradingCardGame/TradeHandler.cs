@@ -76,7 +76,6 @@ namespace MonsterTradingCardGame
             createTrade.AddParameterWithValue("cardid", DbType.String, newTrade.CardId);
 
             string id = (string)(createTrade.ExecuteScalar() ?? "");
-            Console.WriteLine("ID: " + id);
             if (id != "") return Response.CreateResponse("201", "Created", "", "application/json");
             return "???";
         }

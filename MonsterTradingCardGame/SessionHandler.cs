@@ -39,7 +39,7 @@ namespace MonsterTradingCardGame
                         Coins = reader.GetInt32(3),
                         EloValue = reader.GetInt32(4)
                     };
-
+                    if(SessionHandler.tokenMap.ContainsValue((int)newUser.Id)) return Response.CreateResponse("200", "OK", "", "application/json");
                     string token = this.CreateToken(newUser.Username);
                     tokenMap.Add(token, (int)newUser.Id);
                     userMap.Add((int)newUser.Id, newUser);

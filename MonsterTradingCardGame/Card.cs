@@ -30,7 +30,7 @@ namespace MonsterTradingCardGame
     {
         public Card(string cardId, Element cardElement, CardType monsterType, float damage, bool inDeck, bool inTrade)
         {
-            this.cardId = cardId;
+            this.Id = cardId;
             this.CardElement = cardElement;
             this.Type = monsterType;
             this.CardName = cardElement.ToString() + monsterType.ToString();
@@ -39,7 +39,7 @@ namespace MonsterTradingCardGame
             this.inTrade = inTrade;
         }
  
-        public string cardId { get; set; }
+        public string Id { get; set; }
         public CardType Type { get; set; }
         public Element CardElement { get; set; }
         public string CardName { get; set; }
