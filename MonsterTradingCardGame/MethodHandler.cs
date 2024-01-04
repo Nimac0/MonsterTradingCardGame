@@ -70,7 +70,7 @@ namespace MonsterTradingCardGame
                 case string s when s.StartsWith("/tradings/"):
                     string tradeId = s.Substring(10);
                     if (method == "DELETE") response = tradeHandler.DeleteTrade(tradeId, authToken);
-                    if (method == "POST") response = tradeHandler.StartTrade(tradeId);
+                    if (method == "POST") response = tradeHandler.StartTrade(body, tradeId, authToken);
                     break;
                 default:
                     break;

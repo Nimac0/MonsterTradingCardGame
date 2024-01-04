@@ -105,7 +105,7 @@ namespace MonsterTradingCardGame
 
             foreach(Card card in boughtCards)
             {
-                ChangeCardOwner(userId, card.Id);
+                if(!ChangeCardOwner(userId, card.Id)) return "???";
             }
 
             DbHandler deletePackage = new DbHandler(@"DELETE FROM packages WHERE id = @id");
@@ -115,14 +115,16 @@ namespace MonsterTradingCardGame
             return Response.CreateResponse("200", "OK", JsonConvert.SerializeObject(boughtCards, Formatting.Indented), "application/json");
         }
 
-        public void ChangeCardOwner(int? UserId, string cardId)
+        public bool ChangeCardOwner(int? UserId, string cardId) //changes owner of card with given cardid also removes packageid
         {
             DbHandler updateCardsUserId = new DbHandler(@"UPDATE cards SET userid = @userid, packageid = @packageid WHERE id = @cardid;");
             updateCardsUserId.AddParameterWithValue("userid", DbType.Int32, UserId);
             updateCardsUserId.AddParameterWithValue("packageid", DbType.String, "");
             updateCardsUserId.AddParameterWithValue("cardid", DbType.String, cardId);
 
-            updateCardsUserId.ExecuteNonQuery();
+            if(updateCardsUserId.ExecuteNonQuery() == 0) return false;
+
+            return true;
         }
 
         public bool CreateCard(Card newCard, string packageId)
