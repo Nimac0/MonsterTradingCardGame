@@ -59,35 +59,60 @@ namespace MonsterTradingCardGame
                 }
             }
 
-            DbHandler checkOwner = new DbHandler(@"SELECT * FROM cards WHERE id = @cardid AND userid = @userid AND indeck = FALSE;");
-            checkOwner.AddParameterWithValue("cardid", DbType.String, newTrade.CardId);
-            checkOwner.AddParameterWithValue("userid", DbType.Int32, userId);
+            if (!this.CheckIfCardOwner(newTrade.CardId, userId)) return Response.CreateResponse("403", "Forbidden", "", "application/json");
 
-            using (IDataReader reader = checkOwner.ExecuteReader())
-            {
-                if (!reader.Read()) return Response.CreateResponse("403", "Forbidden", "", "application/json");
-            }
-
-            Console.WriteLine(newTrade.RequiredType);
             DbHandler createTrade = new DbHandler(@"INSERT INTO trades (id, requiredtype, requireddamage, cardid) VALUES (@id, @requiredtype, @requireddamage, @cardid) RETURNING id;");
             createTrade.AddParameterWithValue("id", DbType.String, newTrade.Id);
             createTrade.AddParameterWithValue("requiredtype", DbType.String, newTrade.RequiredType);
             createTrade.AddParameterWithValue("requireddamage", DbType.Decimal, newTrade.RequiredDamage);
             createTrade.AddParameterWithValue("cardid", DbType.String, newTrade.CardId);
-
+            // TODO switch intrade to true
             string id = (string)(createTrade.ExecuteScalar() ?? "");
             if (id != "") return Response.CreateResponse("201", "Created", "", "application/json");
             return "???";
         }
 
-        public string DeleteTrade(string tradeId)
+        public string DeleteTrade(string tradeId, string authToken)
         {
+            int? userId = SessionHandler.GetIdByUsername(SessionHandler.GetUsernameByToken(authToken));
+            if (userId == null) return Response.CreateResponse("401", "Unauthorised", "", "application/json");
+
+            DbHandler getTradeFromId = new DbHandler(@"SELECT * FROM trades WHERE id = @id;");
+            Trade currTrade = new Trade();
+            using (IDataReader reader = getTradeFromId.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    currTrade.Id = reader.GetString(0);
+                    currTrade.RequiredType = reader.GetString(1);
+                    currTrade.RequiredDamage = reader.GetFloat(2);
+                    currTrade.CardId = reader.GetString(3);
+                }
+                if(currTrade.Id == null) return Response.CreateResponse("404", "Not Found", "", "application/json");
+            }
+
+            if (!this.CheckIfCardOwner(currTrade.CardId, userId)) return Response.CreateResponse("403", "Forbidden", "", "application/json");
+
+
             return "trade deleted";
         }
 
         public string StartTrade(string tradeId)
         {
             return "trade started";
+        }
+
+        public bool CheckIfCardOwner(string cardId, int? userId)
+        {
+            DbHandler checkOwner = new DbHandler(@"SELECT * FROM cards WHERE id = @cardid AND userid = @userid AND indeck = FALSE;");
+            checkOwner.AddParameterWithValue("cardid", DbType.String, cardId);
+            checkOwner.AddParameterWithValue("userid", DbType.Int32, userId);
+
+            using (IDataReader reader = checkOwner.ExecuteReader())
+            {
+                if (!reader.Read()) return false;
+            }
+            return true;
         }
     }
 }

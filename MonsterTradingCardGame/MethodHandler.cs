@@ -37,11 +37,11 @@ namespace MonsterTradingCardGame
                     response = cardHandler.CreateCardPackage(body, authToken);
                     break;
                 case "/transactions/packages" when method == "POST":
-                    response = cardHandler.BuyCardPackage(body);
+                    response = cardHandler.BuyCardPackage(authToken);
                     break;
                 case "/cards" when method == "GET":
                     response = JsonConvert.SerializeObject(cardHandler.GetCardsOrDeck(authToken, false), Formatting.Indented);
-                    if (response == "null") return Response.CreateResponse("401", "Unauthorised", response, "application/json");
+                    if (response == "null") return Response.CreateResponse("401", "Unauthorised", "", "application/json");
                     if (response == null) return Response.CreateResponse("204", "No Content", response, "application/json");
                     response = Response.CreateResponse("200", "OK", response, "application/json");
                     break;
@@ -68,9 +68,8 @@ namespace MonsterTradingCardGame
                     if (method == "POST") response = tradeHandler.PostTrade(authToken,body);
                     break;
                 case string s when s.StartsWith("/tradings/"):
-
                     string tradeId = s.Substring(10);
-                    if (method == "DELETE") response = tradeHandler.DeleteTrade(tradeId);
+                    if (method == "DELETE") response = tradeHandler.DeleteTrade(tradeId, authToken);
                     if (method == "POST") response = tradeHandler.StartTrade(tradeId);
                     break;
                 default:
