@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using MonsterTradingCardGame.Db;
+using MonsterTradingCardGame.Schemas;
 
 namespace MonsterTradingCardGame
 {
-    internal class Fight
+    public class Fight
     {
         public enum fightResult
         {
@@ -34,16 +37,16 @@ namespace MonsterTradingCardGame
 
             do
             {
-                if (!this._enemy.PlayingDeck.Any())
+                if (!this._enemy.PlayingDeck.Any() || !this._player.PlayingDeck.Any())
                 {
-                    _battleLog.Add(_player.Name + " WINS!");
+                    User winner = !this._enemy.PlayingDeck.Any() ? _player : _enemy;
+                    User loser = !this._player.PlayingDeck.Any() ? _player : _enemy;
+                    _battleLog.Add(winner.Name + " WINS!");
+                    if (!HandleEndOfBattle(winner.Id, loser.Id, pickCard(winner.CardStack))) return null;
+                    
                     return _battleLog;
                 }
-                if (!this._player.PlayingDeck.Any())
-                {
-                    _battleLog.Add(_enemy.Name + " WINS!");
-                    return _battleLog;
-                };
+
                 this._round_counter++;
 
                 _battleLog.Add("---[ROUND " + _round_counter + "]---");
@@ -136,6 +139,23 @@ namespace MonsterTradingCardGame
                     return true;
             }
             return false;
+        }
+
+        public bool HandleEndOfBattle(int? winnerId, int? loserId, Card wonCard)
+        {
+            DbQuery updateWinnerStats = new DbQuery(@"UPDATE users SET elo = elo + 5, wins = wins + 1 WHERE id = winnerId;");
+            updateWinnerStats.AddParameterWithValue("winnerid", DbType.Int32, winnerId);
+            if(updateWinnerStats.ExecuteNonQuery() == 0) return false;
+            
+            DbQuery updateLoserStats = new DbQuery(@"UPDATE users SET elo = elo - 3, losses = losses + 1, coins = coins + 1 WHERE id = loserId;");
+            updateLoserStats.AddParameterWithValue("loserid", DbType.Int32, loserId);
+            if(updateLoserStats.ExecuteNonQuery() == 0) return false;
+            
+            DbQuery addWonCard = new DbQuery(@"UPDATE cards SET userid = @userid, indeck = FALSE WHERE id = @cardid;");
+            addWonCard.AddParameterWithValue("userid", DbType.Int32, winnerId);
+            addWonCard.AddParameterWithValue("cardid", DbType.Int32, wonCard.Id);
+            if(addWonCard.ExecuteNonQuery() == 0) return false;
+            return true;
         }
     }
 }

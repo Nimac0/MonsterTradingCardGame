@@ -1,4 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using MonsterTradingCardGame.Db;
+using MonsterTradingCardGame.http;
+using MonsterTradingCardGame.Schemas;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -6,9 +9,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonsterTradingCardGame
+namespace MonsterTradingCardGame.RequestHandler
 {
-    internal class TradeHandler
+    public class TradeHandler
     {
         public string GetTrades(string authToken)
         {
@@ -51,10 +54,10 @@ namespace MonsterTradingCardGame
 
             if (TradeIdExists(newTrade.CardId)) return Response.CreateResponse("409", "Conflict", "", "application/json");
 
-            if (!this.IsCardOwner(newTrade.CardId, userId)) return Response.CreateResponse("403", "Forbidden", "", "application/json");
+            if (!IsCardOwner(newTrade.CardId, userId)) return Response.CreateResponse("403", "Forbidden", "", "application/json");
 
             DbQuery putInTrade = new DbQuery(@"UPDATE cards SET intrade = TRUE WHERE id = @cardid;");
-            
+
             putInTrade.AddParameterWithValue("cardid", DbType.String, newTrade.CardId);
             putInTrade.ExecuteNonQuery();
 
@@ -77,7 +80,7 @@ namespace MonsterTradingCardGame
 
             Trade currTrade = GetTradeFromId(tradeId);
 
-            if (!this.IsCardOwner(currTrade.CardId, userId)) return Response.CreateResponse("403", "Forbidden", "", "application/json");
+            if (!IsCardOwner(currTrade.CardId, userId)) return Response.CreateResponse("403", "Forbidden", "", "application/json");
 
             DbQuery putInTrade = new DbQuery(@"UPDATE cards SET intrade = FALSE WHERE id = @cardid;");
             putInTrade.AddParameterWithValue("cardid", DbType.String, currTrade.CardId);
@@ -96,10 +99,10 @@ namespace MonsterTradingCardGame
             int? userId = SessionHandler.GetIdByUsername(SessionHandler.GetUsernameByToken(authToken));
             if (userId == null) return Response.CreateResponse("401", "Unauthorised", "", "application/json");
 
-            if (!this.TradeIdExists(tradeId)) return Response.CreateResponse("404", "Not Found", "", "application/json");
+            if (!TradeIdExists(tradeId)) return Response.CreateResponse("404", "Not Found", "", "application/json");
 
             Trade currTrade = GetTradeFromId(tradeId);
-            if (!this.IsCardOwner(cardId, userId) || !this.CheckRequirements(currTrade, cardId)) return Response.CreateResponse("403", "Forbidden", "", "application/json");
+            if (!IsCardOwner(cardId, userId) || !CheckRequirements(currTrade, cardId)) return Response.CreateResponse("403", "Forbidden", "", "application/json");
 
             DbQuery getTradeOwner = new DbQuery(@"SELECT userid FROM cards WHERE id = @cardid;");
             getTradeOwner.AddParameterWithValue("cardid", DbType.String, currTrade.CardId);
@@ -113,9 +116,9 @@ namespace MonsterTradingCardGame
                 }
             }
 
-            CardHandler cardHandler = new CardHandler();
-            if(!cardHandler.ChangeCardOwner(ownerId, cardId)) return "???";
-            if(!cardHandler.ChangeCardOwner(userId, currTrade.CardId)) return "???";
+            PackageHandler packageHandler = new PackageHandler();
+            if (!packageHandler.ChangeCardOwner(ownerId, cardId)) return "???";
+            if (!packageHandler.ChangeCardOwner(userId, currTrade.CardId)) return "???";
 
             return Response.CreateResponse("200", "OK", "", "application/json");
         }
@@ -188,7 +191,7 @@ namespace MonsterTradingCardGame
             }
             if (type == CardType.SPELL && currTrade.RequiredType == "monster" ||
                 type != CardType.SPELL && currTrade.RequiredType == "spell") return false;
-            if(damage < currTrade.RequiredDamage || indeck) return false;
+            if (damage < currTrade.RequiredDamage || indeck) return false;
 
             return true;
 

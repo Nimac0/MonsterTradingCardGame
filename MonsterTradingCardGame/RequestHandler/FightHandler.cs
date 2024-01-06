@@ -1,4 +1,7 @@
 ﻿using Microsoft.VisualBasic;
+using MonsterTradingCardGame.Db;
+using MonsterTradingCardGame.http;
+using MonsterTradingCardGame.Schemas;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
@@ -8,10 +11,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonsterTradingCardGame
+namespace MonsterTradingCardGame.RequestHandler
 {
     //https://csharpindepth.com/articles/singleton#lock
-    internal sealed class FightHandler
+    public sealed class FightHandler
     {
         private static FightHandler instance = null;
         private static readonly object padlock = new object();
@@ -52,12 +55,12 @@ namespace MonsterTradingCardGame
                 }
 
                 int? lookingForBattle = null;
-                foreach (KeyValuePair<int, List<string>?> entry in this.lobby)
+                foreach (KeyValuePair<int, List<string>?> entry in lobby)
                 {
                     if (entry.Value == null)
                     {
                         lookingForBattle = entry.Key;
-                        this.lobby[entry.Key] = new List<string>();
+                        lobby[entry.Key] = new List<string>();
                     }
                 }
 
@@ -71,22 +74,23 @@ namespace MonsterTradingCardGame
                     Fight fight = new Fight(CreateUserFromId(player1Id), CreateUserFromId(player2Id));
 
                     battleLog = fight.StartFight();
+                    if (battleLog == null) return Response.CreateResponse("500", "Internal Server Error", JsonConvert.SerializeObject(battleLog), "application/json");
 
                     Monitor.Enter(lobbyMutex);
-                    this.lobby[(int)player1Id] = battleLog;
+                    lobby[(int)player1Id] = battleLog;
                     Monitor.PulseAll(lobbyMutex);
                 }
                 else
                 {
                     lobby.Add((int)userId, null);
 
-                    while ((battleLog = this.lobby[(int)userId]) == null)
+                    while ((battleLog = lobby[(int)userId]) == null)
                     {
                         Console.WriteLine("waiting for other player...");
                         Monitor.Wait(lobbyMutex);
                     };
 
-                    this.lobby.Remove((int)userId);
+                    lobby.Remove((int)userId);
                 }
             }
 
@@ -126,7 +130,7 @@ namespace MonsterTradingCardGame
                     cardDeck.Add(newCard);
                 }
                 newUser.PlayingDeck = cardDeck;
-                if(newUser.PlayingDeck.Count() == 4) return newUser;
+                if (newUser.PlayingDeck.Count() == 4) return newUser;
             }
             return null;
         }

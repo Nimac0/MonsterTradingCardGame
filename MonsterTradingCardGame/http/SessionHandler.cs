@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using MonsterTradingCardGame.Db;
+using MonsterTradingCardGame.Schemas;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -6,11 +8,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonsterTradingCardGame
+namespace MonsterTradingCardGame.http
 {
-    internal class SessionHandler
+    public class SessionHandler
     {
-        public static Dictionary<string,int> tokenMap = new Dictionary<string, int>(); // token > id > user object
+        public static Dictionary<string, int> tokenMap = new Dictionary<string, int>(); // token > id > user object
         public static Dictionary<int, User> userMap = new Dictionary<int, User>();
 
         public string LoginUser(string requestBody)
@@ -39,8 +41,8 @@ namespace MonsterTradingCardGame
                         Coins = reader.GetInt32(3),
                         EloValue = reader.GetInt32(4)
                     };
-                    if(SessionHandler.tokenMap.ContainsValue((int)newUser.Id)) return Response.CreateResponse("200", "OK", "", "application/json");
-                    string token = this.CreateToken(newUser.Username);
+                    if (tokenMap.ContainsValue((int)newUser.Id)) return Response.CreateResponse("200", "OK", "", "application/json");
+                    string token = CreateToken(newUser.Username);
                     tokenMap.Add(token, (int)newUser.Id);
                     userMap.Add((int)newUser.Id, newUser);
 
@@ -61,16 +63,16 @@ namespace MonsterTradingCardGame
             authToken = authToken.TrimEnd('\r', '\n');
             Console.WriteLine(authToken);
 
-            if (!SessionHandler.tokenMap.ContainsKey(authToken))
+            if (!tokenMap.ContainsKey(authToken))
             {
                 return "";
             }
 
-            if (!SessionHandler.userMap.ContainsKey(SessionHandler.tokenMap[authToken]))
+            if (!userMap.ContainsKey(tokenMap[authToken]))
             {
                 return "";
             }
-            return SessionHandler.userMap[SessionHandler.tokenMap[authToken]].Username;
+            return userMap[tokenMap[authToken]].Username;
         }
 
         public static int? GetIdByUsername(string username)

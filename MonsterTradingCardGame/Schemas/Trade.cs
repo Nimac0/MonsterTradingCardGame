@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonsterTradingCardGame
+namespace MonsterTradingCardGame.Schemas
 {
-    internal class Trade
+    public class Trade
     {
         public string? Id { get; set; }
         public string? RequiredType { get; set; }

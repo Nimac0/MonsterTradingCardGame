@@ -1,4 +1,4 @@
-﻿using MonsterTradingCardGame;
+﻿using MonsterTradingCardGame.http;
 
 namespace MonsterTradingCardGame
 {
@@ -6,7 +6,7 @@ namespace MonsterTradingCardGame
     {
         static void Main(string[] args)
         {
-            ConnectionHandler connectionHandler = new ConnectionHandler();
+            Connection connectionHandler = new Connection();
             connectionHandler.HandleConnection();
         }
     }

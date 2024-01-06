@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonsterTradingCardGame
+namespace MonsterTradingCardGame.http
 {
-    internal class Response
+    public class Response
     {
         public static string CreateResponse(string responseCode, string responseText, string responseBody, string responseType)
         {

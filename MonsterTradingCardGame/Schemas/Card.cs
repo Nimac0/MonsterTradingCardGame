@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-namespace MonsterTradingCardGame
+namespace MonsterTradingCardGame.Schemas
 {
     public enum Element
     {
@@ -26,19 +26,19 @@ namespace MonsterTradingCardGame
         SPELL
     }
 
-    internal class Card
+    public class Card
     {
         public Card(string cardId, Element cardElement, CardType monsterType, float damage, bool inDeck, bool inTrade)
         {
-            this.Id = cardId;
-            this.CardElement = cardElement;
-            this.Type = monsterType;
-            this.CardName = cardElement.ToString() + monsterType.ToString();
-            this.Damage = damage;
-            this.inPlayingDeck = inDeck;
+            Id = cardId;
+            CardElement = cardElement;
+            Type = monsterType;
+            CardName = cardElement.ToString() + monsterType.ToString();
+            Damage = damage;
+            inPlayingDeck = inDeck;
             this.inTrade = inTrade;
         }
- 
+
         public string Id { get; set; }
         public CardType Type { get; set; }
         public Element CardElement { get; set; }

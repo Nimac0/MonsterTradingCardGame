@@ -1,4 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using MonsterTradingCardGame.Db;
+using MonsterTradingCardGame.http;
+using MonsterTradingCardGame.Schemas;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Npgsql;
 using Npgsql.Replication.PgOutput.Messages;
@@ -10,7 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static System.Net.WebRequestMethods;
 
-namespace MonsterTradingCardGame
+namespace MonsterTradingCardGame.RequestHandler
 {
     internal class UserHandler
     {
@@ -21,15 +24,15 @@ namespace MonsterTradingCardGame
             {
                 newUser = JsonConvert.DeserializeObject<User>(requestBody);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-               Console.WriteLine(e.Message);
+                Console.WriteLine(e.Message);
             }
             if (GetUserData(newUser.Username, authToken, false) != null) return Response.CreateResponse("409", "Conflict", "", "application/json");
 
             DbQuery dbHandler = new DbQuery("INSERT INTO users (username, password, coins, elo, wins, losses, name, bio, image) " +
                 "VALUES (@username, @password, @coins, @elo, @wins, @losses, @name, @bio, @image) RETURNING id");
-  
+
             dbHandler.AddParameterWithValue("username", DbType.String, newUser.Username);
             dbHandler.AddParameterWithValue("password", DbType.String, newUser.Password);
             dbHandler.AddParameterWithValue("coins", DbType.Int32, 20);
@@ -88,7 +91,7 @@ namespace MonsterTradingCardGame
                 return getUserResponse;
             }
 
-            if (getUserResponse  == null) return Response.CreateResponse("404", "Not Found", "", "application/json");
+            if (getUserResponse == null) return Response.CreateResponse("404", "Not Found", "", "application/json");
 
             DbQuery dbHandler = new DbQuery("UPDATE users SET name = @displayname, bio = @bio, image = @image WHERE username = @username");
 
@@ -108,7 +111,7 @@ namespace MonsterTradingCardGame
             DbQuery dbHandler = new DbQuery(getAll ? @"SELECT name, elo, wins, losses FROM users;"
                 : @"SELECT name, elo, wins, losses FROM users WHERE username = @username;");
 
-            if(!getAll) dbHandler.AddParameterWithValue("username", DbType.String, authorizedUser);
+            if (!getAll) dbHandler.AddParameterWithValue("username", DbType.String, authorizedUser);
             List<UserStats> userStats = new List<UserStats>();
 
             using (IDataReader reader = dbHandler.ExecuteReader())
@@ -124,7 +127,7 @@ namespace MonsterTradingCardGame
                     };
                     userStats.Add(newUserStats);
                 }
-                if(userStats.Count != 0) return Response.CreateResponse("200", "OK", JsonConvert.SerializeObject(getAll ? userStats : userStats[0]), "application/json");
+                if (userStats.Count != 0) return Response.CreateResponse("200", "OK", JsonConvert.SerializeObject(getAll ? userStats : userStats[0]), "application/json");
             }
             return Response.CreateResponse("404", "Not Found", "", "application/json");
         }

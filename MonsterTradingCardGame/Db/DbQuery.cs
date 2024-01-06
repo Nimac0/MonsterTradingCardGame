@@ -9,18 +9,18 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonsterTradingCardGame
+namespace MonsterTradingCardGame.Db
 {
-    internal class DbQuery
+    public class DbQuery
     {
         private IDbCommand command;
 
         private static string connectionstring = "Host=localhost;Username=nimaco;Password=mtcgSwen;Database=mydb;Include Error Detail=true";
-        
+
         public DbQuery(string commandtext)
         {
-            this.command = ConnectToDb();
-            this.command.CommandText = commandtext;
+            command = ConnectToDb();
+            command.CommandText = commandtext;
         }
 
         public IDbCommand ConnectToDb()
@@ -33,14 +33,15 @@ namespace MonsterTradingCardGame
 
         public void AddParameterWithValue(string parameterName, DbType type, object value)
         {
-            var parameter = this.command.CreateParameter();
+            var parameter = command.CreateParameter();
             parameter.DbType = type;
             parameter.ParameterName = parameterName;
             parameter.Value = value ?? DBNull.Value;
-            this.command.Parameters.Add(parameter);
+            command.Parameters.Add(parameter);
         }
 
-        public object? ExecuteScalar() {
+        public object? ExecuteScalar()
+        {
             return command.ExecuteScalar();
         }
 

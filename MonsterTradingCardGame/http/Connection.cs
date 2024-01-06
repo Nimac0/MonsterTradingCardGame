@@ -8,13 +8,13 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonsterTradingCardGame
+namespace MonsterTradingCardGame.http
 {
-    internal class ConnectionHandler
+    public class Connection
     {
         public void HandleConnection() //TODO rename 
         {
-            MethodHandler methodHandler = new MethodHandler();
+            MethodRouter methodHandler = new MethodRouter();
             Socket serverSocket = new Socket(AddressFamily.InterNetwork,
                                             SocketType.Stream,
                                             ProtocolType.Tcp);
@@ -66,7 +66,7 @@ namespace MonsterTradingCardGame
                     {
                         response = methodHandler.HandleMethod(requestLine[0], requestLine[1], requestBody, authToken); //method and destination
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         Console.WriteLine("EXCEPTION: " + e);
                         response = Response.CreateResponse("500", "Internal Server Error", "", "application/json");
@@ -78,10 +78,10 @@ namespace MonsterTradingCardGame
                 }));
                 childSocketThread.Start();
             }
-                
+
 
         }
 
-        
+
     }
 }

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonsterTradingCardGame
+namespace MonsterTradingCardGame.Schemas
 {
-    internal class UserStats
+    public class UserStats
     {
         public string? Name { get; set; }
         public int? EloValue { get; set; }
