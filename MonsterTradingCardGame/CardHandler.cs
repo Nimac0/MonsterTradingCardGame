@@ -27,7 +27,7 @@ namespace MonsterTradingCardGame
             {
                 if(currCardIds.Contains(card.Id)) return Response.CreateResponse("409", "Conflict", "", "application/json"); ;
                 currCardIds.Add(card.Id);
-                DbHandler checkIfCardExists = new DbHandler(@"SELECT * FROM cards WHERE id = @id");
+                DbQuery checkIfCardExists = new DbQuery(@"SELECT * FROM cards WHERE id = @id");
                 checkIfCardExists.AddParameterWithValue("id", DbType.String, card.Id);
                 using (IDataReader reader = checkIfCardExists.ExecuteReader())
                 {
@@ -39,7 +39,7 @@ namespace MonsterTradingCardGame
             }
             if (errcounter != 0) return Response.CreateResponse("409", "Conflict", "", "application/json");
 
-            DbHandler createId = new DbHandler(@"INSERT INTO packages (id) VALUES (@id) RETURNING id;");
+            DbQuery createId = new DbQuery(@"INSERT INTO packages (id) VALUES (@id) RETURNING id;");
             createId.AddParameterWithValue("id", DbType.String, packageId);
 
             string id = (string)(createId.ExecuteScalar() ?? "");
@@ -59,7 +59,7 @@ namespace MonsterTradingCardGame
 
             if (string.Equals(authorizedUser, "")) return Response.CreateResponse("401", "Unauthorised", "", "application/json");
 
-            DbHandler checkCoins = new DbHandler(@"SELECT coins FROM users WHERE username = @username;");
+            DbQuery checkCoins = new DbQuery(@"SELECT coins FROM users WHERE username = @username;");
             checkCoins.AddParameterWithValue("username", DbType.String, authorizedUser);
             int coins = 0;
             using (IDataReader reader = checkCoins.ExecuteReader())
@@ -73,7 +73,7 @@ namespace MonsterTradingCardGame
             }
 
             string packageId = "";
-            DbHandler checkAvailability = new DbHandler(@"SELECT id FROM packages ORDER BY RANDOM() LIMIT 1;");
+            DbQuery checkAvailability = new DbQuery(@"SELECT id FROM packages ORDER BY RANDOM() LIMIT 1;");
             using (IDataReader reader = checkAvailability.ExecuteReader())
             {
                 if (reader.Read())
@@ -84,14 +84,14 @@ namespace MonsterTradingCardGame
             if(packageId == "") return Response.CreateResponse("404", "Not Found", "", "application/json");
 
             int? userId = SessionHandler.GetIdByUsername(authorizedUser);
-            DbHandler spendCoins = new DbHandler(@"UPDATE users SET coins = @coins WHERE id = @userid;");
+            DbQuery spendCoins = new DbQuery(@"UPDATE users SET coins = @coins WHERE id = @userid;");
             spendCoins.AddParameterWithValue("coins", DbType.Int32, coins);
             spendCoins.AddParameterWithValue("userid", DbType.Int32, userId);
 
-            spendCoins.ExecuteNonQuery();
+            spendCoins.ExecuteNonQuery(); // TODO add mutex
 
             List<Card> boughtCards = new List<Card>();
-            DbHandler getCards = new DbHandler(@"SELECT * FROM cards WHERE packageid = @packageid;");
+            DbQuery getCards = new DbQuery(@"SELECT * FROM cards WHERE packageid = @packageid;");
             getCards.AddParameterWithValue("packageid", DbType.String, packageId);
 
             using (IDataReader reader = getCards.ExecuteReader())
@@ -108,7 +108,7 @@ namespace MonsterTradingCardGame
                 if(!ChangeCardOwner(userId, card.Id)) return "???";
             }
 
-            DbHandler deletePackage = new DbHandler(@"DELETE FROM packages WHERE id = @id");
+            DbQuery deletePackage = new DbQuery(@"DELETE FROM packages WHERE id = @id");
             deletePackage.AddParameterWithValue("id", DbType.String, packageId);
             deletePackage.ExecuteNonQuery();
 
@@ -117,7 +117,7 @@ namespace MonsterTradingCardGame
 
         public bool ChangeCardOwner(int? UserId, string cardId) //changes owner of card with given cardid also removes packageid
         {
-            DbHandler updateCardsUserId = new DbHandler(@"UPDATE cards SET userid = @userid, packageid = @packageid WHERE id = @cardid;");
+            DbQuery updateCardsUserId = new DbQuery(@"UPDATE cards SET userid = @userid, packageid = @packageid WHERE id = @cardid;");
             updateCardsUserId.AddParameterWithValue("userid", DbType.Int32, UserId);
             updateCardsUserId.AddParameterWithValue("packageid", DbType.String, "");
             updateCardsUserId.AddParameterWithValue("cardid", DbType.String, cardId);
@@ -129,7 +129,7 @@ namespace MonsterTradingCardGame
 
         public bool CreateCard(Card newCard, string packageId)
         {
-            DbHandler createCard = new DbHandler(@"INSERT INTO cards (id, element, cardtype, damage, indeck, intrade, userid, cardname, packageid)"
+            DbQuery createCard = new DbQuery(@"INSERT INTO cards (id, element, cardtype, damage, indeck, intrade, userid, cardname, packageid)"
             + "VALUES (@id, @element, @cardtype, @damage, @indeck, @intrade, @userid, @cardname, @packageid)");
 
             createCard.AddParameterWithValue("id", DbType.String, newCard.Id);
@@ -154,7 +154,7 @@ namespace MonsterTradingCardGame
             if (userId == null) return null;
 
             List<Card> cardCollection = new List<Card>();
-            DbHandler dbHandler = new DbHandler(deckRequested ? @"SELECT cards.id,element,cardtype,damage,indeck,intrade,userid, cardname FROM cards WHERE userid = @userid AND indeck = TRUE;"
+            DbQuery dbHandler = new DbQuery(deckRequested ? @"SELECT cards.id,element,cardtype,damage,indeck,intrade,userid, cardname FROM cards WHERE userid = @userid AND indeck = TRUE;"
                : @"SELECT cards.id,element,cardtype,damage,indeck,intrade,userid, cardname FROM cards WHERE userid = @userid AND indeck = FALSE;");
             dbHandler.AddParameterWithValue("userId", DbType.Int32, userId);
 
@@ -170,12 +170,12 @@ namespace MonsterTradingCardGame
             }
         }
 
-        public string ChooseDeck(string requestBody, string authToken)
+        public string ChooseDeck(string requestBody, string authToken) //TODO check if all 4 cards are valid
         {
             int? userId = SessionHandler.GetIdByUsername(SessionHandler.GetUsernameByToken(authToken));
             if (userId == null) return Response.CreateResponse("401", "Unauthorised", "", "application/json");
 
-            DbHandler dbHandler = new DbHandler(@"SELECT * FROM cards WHERE id = @cardid AND userid = @userid;");
+            DbQuery dbHandler = new DbQuery(@"SELECT * FROM cards WHERE id = @cardid AND userid = @userid;");
             List<string>? cardIds = JsonConvert.DeserializeObject<List<string>>(requestBody);
             if(cardIds.Count() != 4) return Response.CreateResponse("400", "Bad Request", "", "application/json");
 
@@ -193,10 +193,10 @@ namespace MonsterTradingCardGame
                 }
             }
             if (counter != 4) return Response.CreateResponse("403", "Forbidden", "", "application/json");
-            DbHandler clearDeck = new DbHandler(@"UPDATE cards SET indeck = FALSE WHERE userid = @userid;");
+            DbQuery clearDeck = new DbQuery(@"UPDATE cards SET indeck = FALSE WHERE userid = @userid;");
             clearDeck.AddParameterWithValue("userid", DbType.Int32, userId);
             clearDeck.ExecuteNonQuery();
-            DbHandler putInDeck = new DbHandler(@"UPDATE cards SET indeck = TRUE WHERE id IN (@id1, @id2, @id3, @id4);");
+            DbQuery putInDeck = new DbQuery(@"UPDATE cards SET indeck = TRUE WHERE id IN (@id1, @id2, @id3, @id4);");
             
             int i = 1;
             foreach (string cardId in cardIds)

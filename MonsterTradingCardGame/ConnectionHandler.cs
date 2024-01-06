@@ -61,7 +61,16 @@ namespace MonsterTradingCardGame
                         authToken = httpHeaders["Authorization"];
                     }
 
-                    string response = methodHandler.HandleMethod(requestLine[0], requestLine[1], requestBody, authToken); //method and destination
+                    string response;
+                    try
+                    {
+                        response = methodHandler.HandleMethod(requestLine[0], requestLine[1], requestBody, authToken); //method and destination
+                    }
+                    catch(Exception e)
+                    {
+                        Console.WriteLine("EXCEPTION: " + e);
+                        response = Response.CreateResponse("500", "Internal Server Error", "", "application/json");
+                    }
                     Console.WriteLine(response);
                     clientSocket.Send(Encoding.ASCII.GetBytes(response));
                     clientSocket.Close();

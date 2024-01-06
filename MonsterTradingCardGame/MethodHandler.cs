@@ -18,6 +18,7 @@ namespace MonsterTradingCardGame
             SessionHandler sessionHandler = new SessionHandler();
             CardHandler cardHandler = new CardHandler();
             TradeHandler tradeHandler = new TradeHandler();
+            FightHandler fightHandler = FightHandler.Instance;
 
             string response= "";
             switch (destination)
@@ -61,7 +62,7 @@ namespace MonsterTradingCardGame
                     response = userHandler.GetUserStats(authToken, true);
                     break;
                 case "/battles" when method == "POST":
-                    //TODO make it so two users can be added to fight constructor
+                    response = fightHandler.StartLobby(authToken);
                     break;
                 case "/tradings":
                     if (method == "GET") response = tradeHandler.GetTrades(authToken);
@@ -73,6 +74,7 @@ namespace MonsterTradingCardGame
                     if (method == "POST") response = tradeHandler.StartTrade(body, tradeId, authToken);
                     break;
                 default:
+                    response = Response.CreateResponse("400", "Bad Request", "", "application/json");
                     break;
             }
             return response;

@@ -27,7 +27,7 @@ namespace MonsterTradingCardGame
             }
             if (GetUserData(newUser.Username, authToken, false) != null) return Response.CreateResponse("409", "Conflict", "", "application/json");
 
-            DbHandler dbHandler = new DbHandler("INSERT INTO users (username, password, coins, elo, wins, losses, name, bio, image) " +
+            DbQuery dbHandler = new DbQuery("INSERT INTO users (username, password, coins, elo, wins, losses, name, bio, image) " +
                 "VALUES (@username, @password, @coins, @elo, @wins, @losses, @name, @bio, @image) RETURNING id");
   
             dbHandler.AddParameterWithValue("username", DbType.String, newUser.Username);
@@ -50,7 +50,7 @@ namespace MonsterTradingCardGame
         {
             string authorizedUser = SessionHandler.GetUsernameByToken(authToken);
             if (!string.Equals(username, authorizedUser) && authNeeded) return Response.CreateResponse("401", "Unauthorised", "", "application/json");
-            DbHandler dbHandler = new DbHandler(@"SELECT * FROM users WHERE username = @username");
+            DbQuery dbHandler = new DbQuery(@"SELECT * FROM users WHERE username = @username");
 
             dbHandler.AddParameterWithValue("username", DbType.String, username);
             using (IDataReader reader = dbHandler.ExecuteReader())
@@ -90,7 +90,7 @@ namespace MonsterTradingCardGame
 
             if (getUserResponse  == null) return Response.CreateResponse("404", "Not Found", "", "application/json");
 
-            DbHandler dbHandler = new DbHandler("UPDATE users SET name = @displayname, bio = @bio, image = @image WHERE username = @username");
+            DbQuery dbHandler = new DbQuery("UPDATE users SET name = @displayname, bio = @bio, image = @image WHERE username = @username");
 
             dbHandler.AddParameterWithValue("username", DbType.String, username);
             dbHandler.AddParameterWithValue("displayname", DbType.String, newUserData.Name);
@@ -105,7 +105,7 @@ namespace MonsterTradingCardGame
         {
             string authorizedUser = SessionHandler.GetUsernameByToken(authToken);
             if (string.IsNullOrEmpty(authorizedUser) && !getAll) return Response.CreateResponse("401", "Unauthorised", "", "application/json");
-            DbHandler dbHandler = new DbHandler(getAll ? @"SELECT name, elo, wins, losses FROM users;"
+            DbQuery dbHandler = new DbQuery(getAll ? @"SELECT name, elo, wins, losses FROM users;"
                 : @"SELECT name, elo, wins, losses FROM users WHERE username = @username;");
 
             if(!getAll) dbHandler.AddParameterWithValue("username", DbType.String, authorizedUser);

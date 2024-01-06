@@ -21,6 +21,7 @@ namespace MonsterTradingCardGame
         private User _enemy;
         private int _round_counter = 0;
         private static Random rng = new Random();
+        private List<string> _battleLog = new List<string>();
 
         public Fight(User player, User enemy)
         {
@@ -28,15 +29,24 @@ namespace MonsterTradingCardGame
             this._enemy = enemy;
         }
 
-        public fightResult StartFight()
+        public List<string> StartFight()
         {
 
             do
             {
-                if (!this._enemy.PlayingDeck.Any()) return fightResult.WIN;
-                if (!this._player.PlayingDeck.Any()) return fightResult.LOSE;
-
+                if (!this._enemy.PlayingDeck.Any())
+                {
+                    _battleLog.Add(_player.Name + " WINS!");
+                    return _battleLog;
+                }
+                if (!this._player.PlayingDeck.Any())
+                {
+                    _battleLog.Add(_enemy.Name + " WINS!");
+                    return _battleLog;
+                };
                 this._round_counter++;
+
+                _battleLog.Add("---[ROUND " + _round_counter + "]---");
 
                 Card currPlayerCard = this.pickCard(this._player.PlayingDeck);
                 Card currEnemyCard = this.pickCard(this._enemy.PlayingDeck);
@@ -46,17 +56,20 @@ namespace MonsterTradingCardGame
 
                 if(WinnerCard == currPlayerCard)
                 {
+                    _battleLog.Add(currPlayerCard.CardName + " beats " + currEnemyCard.CardName + ".");
                     this._player.CardStack.Add(this._enemy.PlayingDeck.First()); //take losers card to cardstack
                     this._enemy.PlayingDeck.RemoveAt(0);
                     continue;
                 }
+                _battleLog.Add(currEnemyCard.CardName + " beats " + currPlayerCard.CardName + ".");
                 this._enemy.CardStack.Add(this._player.PlayingDeck.First());
                 this._player.PlayingDeck.RemoveAt(0);
                 continue;
 
-            } while (this._round_counter <= 100);
+            } while (this._round_counter < 100);
 
-            return fightResult.DRAW;
+            _battleLog.Add("DRAW");
+            return _battleLog;
         }
 
         public Card pickCard(List<Card> deck)
@@ -82,8 +95,16 @@ namespace MonsterTradingCardGame
             {
                 dmgMultiplier = getMultiplier(playerCard.CardElement, enemyCard.CardElement);
             }
-            if (getImmunity(playerCard, enemyCard)) return playerCard;
-            if (getImmunity(enemyCard, playerCard)) return enemyCard;
+            if (getImmunity(playerCard, enemyCard))
+            {
+                _battleLog.Add(playerCard.CardName + " is immune.");
+                return playerCard;
+            }
+            if (getImmunity(enemyCard, playerCard))
+            {
+                _battleLog.Add(enemyCard.CardName + " is immune.");
+                return enemyCard;
+            } 
 
             return (playerCard.Damage * dmgMultiplier) > (enemyCard.Damage / dmgMultiplier) ?
                     playerCard : (playerCard.Damage * dmgMultiplier) < (enemyCard.Damage / dmgMultiplier) ?

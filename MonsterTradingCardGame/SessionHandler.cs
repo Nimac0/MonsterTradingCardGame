@@ -24,7 +24,7 @@ namespace MonsterTradingCardGame
             {
                 Console.WriteLine(e.Message);
             }
-            DbHandler dbHandler = new DbHandler(@"SELECT * FROM users WHERE username = @username AND password = @password");
+            DbQuery dbHandler = new DbQuery(@"SELECT * FROM users WHERE username = @username AND password = @password");
             dbHandler.AddParameterWithValue("username", DbType.String, newUserData.Username);
             dbHandler.AddParameterWithValue("password", DbType.String, newUserData.Password);
             using (IDataReader reader = dbHandler.ExecuteReader())
@@ -52,7 +52,7 @@ namespace MonsterTradingCardGame
 
         public string CreateToken(string username) //this is not the ideal way of doing tokens bc predictable and insecure but the curl script uses tokens like this and i dont want to change the script that much :P
         {
-            string token = username + "-mtcgToken";
+            string token = "Bearer " + username + "-mtcgToken";
             return token;
         }
 
@@ -75,7 +75,7 @@ namespace MonsterTradingCardGame
 
         public static int? GetIdByUsername(string username)
         {
-            DbHandler getIdByUsername = new DbHandler(@"SELECT users.id FROM users WHERE username = @username");
+            DbQuery getIdByUsername = new DbQuery(@"SELECT users.id FROM users WHERE username = @username");
 
             getIdByUsername.AddParameterWithValue("username", DbType.String, username);
 
