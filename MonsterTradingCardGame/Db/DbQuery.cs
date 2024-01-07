@@ -23,13 +23,8 @@ namespace MonsterTradingCardGame.Db
 
         }
         
-        public DbQuery NewCommand(string commandtext)
+        public IDatabase NewCommand(string commandtext)
         {
-            if (command != null)
-            {
-                command.Dispose();
-            }
-
             command = ConnectToDb();
             command.CommandText = commandtext;
 
@@ -55,17 +50,22 @@ namespace MonsterTradingCardGame.Db
 
         public object? ExecuteScalar()
         {
-            return command.ExecuteScalar();
+            var executeScalar = command.ExecuteScalar();
+            command.Connection.Close();
+            return executeScalar;
         }
 
         public int ExecuteNonQuery()
         {
-            return command.ExecuteNonQuery();
+            int nonQuery = command.ExecuteNonQuery();
+            command.Connection.Close();
+            return nonQuery;
         }
 
         public IDataReader ExecuteReader()
         {
-            return command.ExecuteReader();
+            var reader = command.ExecuteReader(CommandBehavior.CloseConnection);
+            return reader;
         }
 
     }

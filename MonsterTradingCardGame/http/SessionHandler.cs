@@ -13,7 +13,7 @@ namespace MonsterTradingCardGame.http
 {
     public class SessionHandler
     {
-        public DbQuery dbQuery = new DbQuery();
+        public IDatabase dbQuery = new DbQuery();
         public static Dictionary<string, int> tokenMap = new Dictionary<string, int>(); // token > id > user object
         public static Dictionary<int, User> userMap = new Dictionary<int, User>();
         private static SessionHandler instance = null;
@@ -48,7 +48,7 @@ namespace MonsterTradingCardGame.http
             {
                 Console.WriteLine(e.Message);
             }
-            DbQuery dbHandler = this.dbQuery.NewCommand(@"SELECT * FROM users WHERE username = @username AND password = @password");
+            IDatabase dbHandler = this.dbQuery.NewCommand(@"SELECT * FROM users WHERE username = @username AND password = @password");
             dbHandler.AddParameterWithValue("username", DbType.String, newUserData.Username);
             dbHandler.AddParameterWithValue("password", DbType.String, newUserData.Password);
             using (IDataReader reader = dbHandler.ExecuteReader())
@@ -97,9 +97,9 @@ namespace MonsterTradingCardGame.http
             return userMap[tokenMap[authToken]].Username;
         }
 
-        public int? GetIdByUsername(string username)
+        public virtual int? GetIdByUsername(string username)
         {
-            DbQuery getIdByUsername = this.dbQuery.NewCommand(@"SELECT users.id FROM users WHERE username = @username");
+            IDatabase getIdByUsername = this.dbQuery.NewCommand(@"SELECT users.id FROM users WHERE username = @username");
 
             getIdByUsername.AddParameterWithValue("username", DbType.String, username);
 

@@ -13,7 +13,8 @@ namespace MonsterTradingCardGame.RequestHandler
 {
     public class PackageHandler
     {
-        public DbQuery dbQuery = new DbQuery();
+        public IDatabase dbQuery = new DbQuery();
+        public static Mutex buyingMutex = new Mutex();
 
         public string CreateCardPackage(string requestBody, string authToken)
         {
@@ -31,7 +32,7 @@ namespace MonsterTradingCardGame.RequestHandler
             {
                 if (currCardIds.Contains(card.Id)) return Response.CreateResponse("409", "Conflict", "", "application/json"); ;
                 currCardIds.Add(card.Id);
-                DbQuery checkIfCardExists = this.dbQuery.NewCommand(@"SELECT * FROM cards WHERE id = @id");
+                IDatabase checkIfCardExists = this.dbQuery.NewCommand(@"SELECT * FROM cards WHERE id = @id");
                 checkIfCardExists.AddParameterWithValue("id", DbType.String, card.Id);
                 using (IDataReader reader = checkIfCardExists.ExecuteReader())
                 {
@@ -43,7 +44,7 @@ namespace MonsterTradingCardGame.RequestHandler
             }
             if (errcounter != 0) return Response.CreateResponse("409", "Conflict", "", "application/json");
 
-            DbQuery createId = this.dbQuery.NewCommand(@"INSERT INTO packages (id) VALUES (@id) RETURNING id;");
+            IDatabase createId = this.dbQuery.NewCommand(@"INSERT INTO packages (id) VALUES (@id) RETURNING id;");
             createId.AddParameterWithValue("id", DbType.String, packageId);
 
             string id = (string)(createId.ExecuteScalar() ?? "");
@@ -66,7 +67,7 @@ namespace MonsterTradingCardGame.RequestHandler
 
             if (string.Equals(authorizedUser, "")) return Response.CreateResponse("401", "Unauthorised", "", "application/json");
 
-            DbQuery checkCoins = this.dbQuery.NewCommand(@"SELECT coins FROM users WHERE username = @username;");
+            IDatabase checkCoins = this.dbQuery.NewCommand(@"SELECT coins FROM users WHERE username = @username;");
             checkCoins.AddParameterWithValue("username", DbType.String, authorizedUser);
             int coins = 0;
             using (IDataReader reader = checkCoins.ExecuteReader())
@@ -80,42 +81,55 @@ namespace MonsterTradingCardGame.RequestHandler
             }
 
             string packageId = "";
-            DbQuery checkAvailability = this.dbQuery.NewCommand(@"SELECT id FROM packages ORDER BY RANDOM() LIMIT 1;");
-            using (IDataReader reader = checkAvailability.ExecuteReader())
+            lock(buyingMutex)
             {
-                if (reader.Read())
+                IDatabase checkAvailability = this.dbQuery.NewCommand(@"SELECT id FROM packages WHERE bought = false LIMIT 1;");//ORDER BY RANDOM() 
+                using (IDataReader reader = checkAvailability.ExecuteReader())
                 {
-                    packageId = reader.GetString(0);
+                    if (reader.Read())
+                    {
+                        packageId = reader.GetString(0);
+                    }
                 }
+
+                if (packageId == "") return Response.CreateResponse("404", "Not Found", "", "application/json");
+                IDatabase changeAvailability = this.dbQuery.NewCommand(@"UPDATE packages SET bought = TRUE WHERE id = @packageid;");
+                changeAvailability.AddParameterWithValue("packageid", DbType.String, packageId);
+
+                changeAvailability.ExecuteNonQuery();
             }
-            if (packageId == "") return Response.CreateResponse("404", "Not Found", "", "application/json");
+            
 
             int? userId = SessionHandler.Instance.GetIdByUsername(authorizedUser);
-            DbQuery spendCoins = this.dbQuery.NewCommand(@"UPDATE users SET coins = @coins WHERE id = @userid;");
+            IDatabase spendCoins = this.dbQuery.NewCommand(@"UPDATE users SET coins = @coins WHERE id = @userid;");
             spendCoins.AddParameterWithValue("coins", DbType.Int32, coins);
             spendCoins.AddParameterWithValue("userid", DbType.Int32, userId);
 
-            spendCoins.ExecuteNonQuery(); // TODO add mutex
+            spendCoins.ExecuteNonQuery();
 
-            List<Card> boughtCards = new List<Card>();
-            DbQuery getCards = this.dbQuery.NewCommand(@"SELECT * FROM cards WHERE packageid = @packageid;");
+            List<ResponseCard> boughtCards = new List<ResponseCard>();
+            IDatabase getCards = this.dbQuery.NewCommand(@"SELECT id, damage, cardname FROM cards WHERE packageid = @packageid;");
             getCards.AddParameterWithValue("packageid", DbType.String, packageId);
 
             using (IDataReader reader = getCards.ExecuteReader())
             {
                 while (reader.Read())
                 {
-                    Card card = new Card(reader.GetString(0), (Element)reader.GetInt32(1), (CardType)reader.GetInt32(2), reader.GetFloat(3), reader.GetBoolean(4), reader.GetBoolean(5), reader.GetString(7));
+                    ResponseCard card = new ResponseCard()
+                    {
+                        Id = reader.GetString(0),
+                        Damage = reader.GetFloat(1),
+                        Name = reader.GetString(2)
+                    };
                     boughtCards.Add(card);
                 }
             }
 
-            foreach (Card card in boughtCards)
+            foreach (ResponseCard card in boughtCards)
             {
                 if (!ChangeCardOwner(userId, card.Id)) return "???";
             }
-
-            DbQuery deletePackage = this.dbQuery.NewCommand(@"DELETE FROM packages WHERE id = @id");
+            IDatabase deletePackage = this.dbQuery.NewCommand(@"DELETE FROM packages WHERE id = @id");
             deletePackage.AddParameterWithValue("id", DbType.String, packageId);
             deletePackage.ExecuteNonQuery();
 
@@ -124,7 +138,7 @@ namespace MonsterTradingCardGame.RequestHandler
 
         public bool ChangeCardOwner(int? UserId, string cardId) //changes owner of card with given cardid also removes packageid
         {
-            DbQuery updateCardsUserId = this.dbQuery.NewCommand(@"UPDATE cards SET userid = @userid, packageid = @packageid WHERE id = @cardid;");
+            IDatabase updateCardsUserId = this.dbQuery.NewCommand(@"UPDATE cards SET userid = @userid, packageid = @packageid WHERE id = @cardid;");
             updateCardsUserId.AddParameterWithValue("userid", DbType.Int32, UserId);
             updateCardsUserId.AddParameterWithValue("packageid", DbType.String, "");
             updateCardsUserId.AddParameterWithValue("cardid", DbType.String, cardId);

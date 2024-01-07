@@ -9,8 +9,8 @@ namespace MonsterTradingCardGame.Schemas
     public class Trade
     {
         public string? Id { get; set; }
-        public string? RequiredType { get; set; }
-        public float? RequiredDamage { get; set; }
-        public string? CardId { get; set; }
+        public string? Type { get; set; }
+        public float? MinimumDamage { get; set; }
+        public string? CardToTrade { get; set; }
     }
 }

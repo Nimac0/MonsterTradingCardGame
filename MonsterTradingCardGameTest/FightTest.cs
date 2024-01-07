@@ -12,6 +12,34 @@ namespace MonsterTradingCardGameTest
     public class FightTest
     {
         [Test]
+        public void TestGetMultiplierWeakness()
+        {
+            User mockuser1 = new User();
+            User mockuser2 = new User();
+
+            Fight newFight = new Fight(mockuser1, mockuser2);
+
+            float result = newFight.getMultiplier(Element.FIRE, Element.WATER);
+            float expected = 0.5f;
+
+            Assert.That(result.Equals(expected));
+        }
+
+        [Test]
+        public void TestGetMultiplierStrong()
+        {
+            User mockuser1 = new User();
+            User mockuser2 = new User();
+
+            Fight newFight = new Fight(mockuser1, mockuser2);
+
+            float result = newFight.getMultiplier(Element.FIRE, Element.NORMAL);
+            float expected = 2;
+
+            Assert.That(result.Equals(expected));
+        }
+
+        [Test]
         public void TestHigherDamageWinsMonstersOnly()
         {
             Card winnerCard = new Card("test", Element.FIRE, CardType.DRAGON, 50, true, false, "FireDragon");
@@ -66,7 +94,24 @@ namespace MonsterTradingCardGameTest
         public void TestWaterSpellBeatsKnight()
         {
             Card winnerCard = new Card("test", Element.WATER, CardType.SPELL, 50, true, false, "WaterSpell");
-            Card loserCard = new Card("test1", Element.NORMAL, CardType.KNIGHT, 100, true, false, "RegularKnight");
+            Card loserCard = new Card("test1", Element.NORMAL, CardType.KNIGHT, 100, true, false, "Knight");
+
+            User mockuser1 = new User();
+            User mockuser2 = new User();
+
+            Card actual = winnerCard;
+
+            Fight newFight = new Fight(mockuser1, mockuser2);
+            Card? result = newFight.Attack(winnerCard, loserCard);
+
+            Assert.That(result.Equals(actual));
+        }
+
+        [Test]
+        public void TestFireElfBeatsDragon()
+        {
+            Card winnerCard = new Card("test", Element.FIRE, CardType.ELF, 50, true, false, "FireElf");
+            Card loserCard = new Card("test1", Element.NORMAL, CardType.DRAGON, 100, true, false, "Dragon");
 
             User mockuser1 = new User();
             User mockuser2 = new User();
@@ -88,12 +133,10 @@ namespace MonsterTradingCardGameTest
             User mockuser1 = new User();
             User mockuser2 = new User();
 
-            Card actual = null;
-
             Fight newFight = new Fight(mockuser1, mockuser2);
             Card? result = newFight.Attack(winnerCard, loserCard);
 
-            Assert.That(result.Equals(actual));
+            Assert.That(result == null);
         }
     }
 }

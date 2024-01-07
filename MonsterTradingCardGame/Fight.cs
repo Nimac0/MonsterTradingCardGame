@@ -13,7 +13,7 @@ namespace MonsterTradingCardGame
 {
     public class Fight
     {
-        public DbQuery dbQuery = new DbQuery();
+        public IDatabase dbQuery = new DbQuery();
         public enum fightResult
         {
             WIN = 0,
@@ -35,7 +35,7 @@ namespace MonsterTradingCardGame
 
         public List<string> StartFight()
         {
-
+            Console.WriteLine("starting fight");
             do
             {
                 if (!this._enemy.PlayingDeck.Any() || !this._player.PlayingDeck.Any())
@@ -43,7 +43,7 @@ namespace MonsterTradingCardGame
                     User winner = !this._enemy.PlayingDeck.Any() ? _player : _enemy;
                     User loser = !this._player.PlayingDeck.Any() ? _player : _enemy;
                     _battleLog.Add(winner.Name + " WINS!");
-                    if (!HandleEndOfBattle(winner.Id, loser.Id, pickCard(winner.CardStack))) return null;
+                    if (!HandleEndOfBattle(winner.Id, loser.Id, pickCard(winner.CardStack))) return _battleLog = null;
                     
                     return _battleLog;
                 }
@@ -53,10 +53,18 @@ namespace MonsterTradingCardGame
                 _battleLog.Add("---[ROUND " + _round_counter + "]---");
 
                 Card currPlayerCard = this.pickCard(this._player.PlayingDeck);
+                //currPlayerCard.Damage += 200; 
                 Card currEnemyCard = this.pickCard(this._enemy.PlayingDeck);
                 Card? WinnerCard = this.Attack(currPlayerCard, currEnemyCard);
+                _battleLog.Add("PLAYER DECK COUNTER: " + this._player.PlayingDeck.Count());
+                _battleLog.Add("ENEMY DECK COUNTER: " + this._enemy.PlayingDeck.Count());
 
-                if (WinnerCard == null) continue;
+                if (WinnerCard == null)
+                {
+                    _battleLog.Add("DRAW BETWEEN: " + currPlayerCard.Name + currPlayerCard.Damage + " AND " + currEnemyCard.Name + currEnemyCard.Damage);
+                    continue;
+                }
+
 
                 if(WinnerCard == currPlayerCard)
                 {
@@ -144,18 +152,19 @@ namespace MonsterTradingCardGame
 
         public bool HandleEndOfBattle(int? winnerId, int? loserId, Card wonCard)
         {
-            DbQuery updateWinnerStats = this.dbQuery.NewCommand(@"UPDATE users SET elo = elo + 5, wins = wins + 1 WHERE id = winnerId;");
+            IDatabase updateWinnerStats = this.dbQuery.NewCommand(@"UPDATE users SET elo = elo + 5, wins = wins + 1 WHERE id = @winnerid;");
             updateWinnerStats.AddParameterWithValue("winnerid", DbType.Int32, winnerId);
-            if(updateWinnerStats.ExecuteNonQuery() == 0) return false;
-            
-            DbQuery updateLoserStats = this.dbQuery.NewCommand(@"UPDATE users SET elo = elo - 3, losses = losses + 1, coins = coins + 1 WHERE id = loserId;");
+            if (updateWinnerStats.ExecuteNonQuery() < 1) return false;
+
+            IDatabase updateLoserStats = this.dbQuery.NewCommand(@"UPDATE users SET elo = elo - 3, losses = losses + 1, coins = coins + 1 WHERE id = @loserId;");
             updateLoserStats.AddParameterWithValue("loserid", DbType.Int32, loserId);
-            if(updateLoserStats.ExecuteNonQuery() == 0) return false;
-            
-            DbQuery addWonCard = this.dbQuery.NewCommand(@"UPDATE cards SET userid = @userid, indeck = FALSE WHERE id = @cardid;");
+            if(updateLoserStats.ExecuteNonQuery() < 1) return false;
+
+            IDatabase addWonCard = this.dbQuery.NewCommand(@"UPDATE cards SET userid = @userid, indeck = FALSE WHERE id = @cardid;");
             addWonCard.AddParameterWithValue("userid", DbType.Int32, winnerId);
-            addWonCard.AddParameterWithValue("cardid", DbType.Int32, wonCard.Id);
-            if(addWonCard.ExecuteNonQuery() == 0) return false;
+            addWonCard.AddParameterWithValue("cardid", DbType.String, wonCard.Id);
+            if(addWonCard.ExecuteNonQuery() < 1) return false;
+
             return true;
         }
     }

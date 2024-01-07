@@ -16,7 +16,7 @@ namespace MonsterTradingCardGame.RequestHandler
     //https://csharpindepth.com/articles/singleton#lock
     public sealed class FightHandler
     {
-        public DbQuery dbQuery = new DbQuery();
+        public IDatabase dbQuery = new DbQuery();
         private static FightHandler instance = null;
         private static readonly object padlock = new object();
         private Dictionary<int, List<string>?> lobby = new Dictionary<int, List<string>?>();
@@ -41,7 +41,7 @@ namespace MonsterTradingCardGame.RequestHandler
             }
         }
 
-        public string StartLobby(string authToken) //TODO create check if deck != null and make query to add deck to user
+        public string StartLobby(string authToken)
         {
             int? player1Id = null;
             int? player2Id = null;
@@ -54,6 +54,8 @@ namespace MonsterTradingCardGame.RequestHandler
                 {
                     return Response.CreateResponse("401", "Unauthorised", "", "application/json");
                 }
+                CardHandler cardHandler = new CardHandler();
+                if(cardHandler.GetCardsOrDeck(authToken, true).Count() != 4) return Response.CreateResponse("403", "Forbidden", "", "application/json");
 
                 int? lookingForBattle = null;
                 foreach (KeyValuePair<int, List<string>?> entry in lobby)
@@ -75,9 +77,10 @@ namespace MonsterTradingCardGame.RequestHandler
                     Fight fight = new Fight(CreateUserFromId(player1Id), CreateUserFromId(player2Id));
 
                     battleLog = fight.StartFight();
+                
                     if (battleLog == null) return Response.CreateResponse("500", "Internal Server Error", JsonConvert.SerializeObject(battleLog), "application/json");
-
                     Monitor.Enter(lobbyMutex);
+
                     lobby[(int)player1Id] = battleLog;
                     Monitor.PulseAll(lobbyMutex);
                 }
@@ -100,7 +103,7 @@ namespace MonsterTradingCardGame.RequestHandler
 
         public User CreateUserFromId(int? userId)
         {
-            DbQuery getUserData = this.dbQuery.NewCommand(@"SELECT name, coins, elo, wins, losses FROM users WHERE id = @userid;");
+            IDatabase getUserData = this.dbQuery.NewCommand(@"SELECT name, coins, elo, wins, losses FROM users WHERE id = @userid;");
             getUserData.AddParameterWithValue("userid", DbType.Int32, userId);
 
             User newUser = new User();
@@ -119,7 +122,7 @@ namespace MonsterTradingCardGame.RequestHandler
             }
 
             List<Card> cardDeck = new List<Card>();
-            DbQuery getDeck = this.dbQuery.NewCommand(@"SELECT cards.id,element,cardtype,damage,indeck,intrade,userid, cardname FROM cards WHERE userid = @userid AND indeck = TRUE;");
+            IDatabase getDeck = this.dbQuery.NewCommand(@"SELECT cards.id,element,cardtype,damage,indeck,intrade,userid, cardname FROM cards WHERE userid = @userid AND indeck = TRUE;");
             getDeck.AddParameterWithValue("userid", DbType.Int32, userId);
 
             using (IDataReader reader = getDeck.ExecuteReader())

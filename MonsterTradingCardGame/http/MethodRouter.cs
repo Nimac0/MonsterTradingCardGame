@@ -14,7 +14,7 @@ namespace MonsterTradingCardGame.http
 
     public class MethodRouter
     {
-        public DbQuery dbQuery = new DbQuery();
+        public IDatabase dbQuery = new DbQuery();
         public string HandleMethod(string method, string destination, string body, string authToken)
         {
             UserHandler userHandler = new UserHandler();
@@ -29,7 +29,7 @@ namespace MonsterTradingCardGame.http
             switch (destination)
             {
                 case "/users" when method == "POST":
-                    response = userHandler.CreateUser("", body, authToken);
+                    response = userHandler.CreateUser(body, authToken);
                     break;
                 case string s when s.StartsWith("/users/"):
                     string username = s.Substring(7);

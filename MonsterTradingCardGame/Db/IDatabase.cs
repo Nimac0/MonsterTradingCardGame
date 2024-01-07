@@ -10,7 +10,7 @@ namespace MonsterTradingCardGame.Db
 {
     public interface IDatabase
     {
-        public DbQuery NewCommand(string commandtext);
+        public IDatabase NewCommand(string commandtext);
 
         public IDbCommand ConnectToDb();
 

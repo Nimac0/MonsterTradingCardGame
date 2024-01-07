@@ -30,7 +30,7 @@ namespace MonsterTradingCardGameTest
         }
 
         [Test]
-        public void TestElementAndTypeCorrectlyAssigned()
+        public void TestElementAndTypeCorrectlyAssignedHasElement()
         {
             string mockCardName = "FireElf";
 
@@ -38,6 +38,22 @@ namespace MonsterTradingCardGameTest
 
             Card expectedCard = new Card("test1", Element.FIRE, CardType.ELF, 50, false, false, mockCardName);
             
+            PackageHandler packageHandler = new PackageHandler();
+            packageHandler.SetCardAttributes(card);
+
+            Assert.That(card.CardElement.Equals(expectedCard.CardElement));
+            Assert.That(card.Type.Equals(expectedCard.Type));
+        }
+
+        [Test]
+        public void TestElementAndTypeCorrectlyAssignedNoElement()
+        {
+            string mockCardName = "Dragon";
+
+            Card card = new Card("test1", Element.WATER, CardType.GOBLIN, 50, false, false, mockCardName);
+
+            Card expectedCard = new Card("test1", Element.NORMAL, CardType.DRAGON, 50, false, false, mockCardName);
+
             PackageHandler packageHandler = new PackageHandler();
             packageHandler.SetCardAttributes(card);
 

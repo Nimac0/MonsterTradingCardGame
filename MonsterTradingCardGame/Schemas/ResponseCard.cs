@@ -8,8 +8,8 @@ namespace MonsterTradingCardGame.Schemas
 {
     public class ResponseCard
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public float Damage { get; set; }
+        public string? Id { get; set; }
+        public string? Name { get; set; }
+        public float? Damage { get; set; }
     }
 }
