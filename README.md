@@ -59,12 +59,19 @@ Dabei wird gecheckt ob die Fightlogik richtig funktioniert, ob z.B. schlechte Re
 
 ## 4. Verlauf, Lessons learned
 Zu Beginn habe ich mit der FightLogic angefangen und dabei nur die Text specification als guide benutzt.
+
 -> hätte früher die api specification und curl script genauer beachten sollen da mir das viel rewriting erspart hätte
+
 -> ebenfalls hätte ich dadurch viel schneller eine konkretere Struktur meines Projekts gehabt und viel rumprobieren erspart (aufgrund vergangener Projekte war ich mir nicht sicher wie viel Freiraum ich bei dem definieren verschiedener Funktionen und schemen tatsächliche hätte, es war im Endeffekt weniger als zuerst eingeschätzt)
+
 -> ich habe von Anfang an Sockets für meine Connection benutzt habe dann alles versucht umzuschrieben weil mir gesagt wurde dass Sockets komplizierter sind, habe mich im Endeffekt trotzdem für Sockets entschieden da der mehraufwand im Vergleich zum TcpListener nicht viel mehr war und ich von einem anderen Fach noch im Gedächtnis hatte wie Sockets funktionieren
+
 -> SessionHandler und FightHandler wurden aufgrund der unter den Threads geteilten Informationen (Lobby, Session Dictionary) zu Singletons gemacht um den Zugriff zu erleichtern und das gemeinsame starten in einen Kampf trotz verschiedener Threads zu ermöglichen.
+
 -> anfangs hatte ich die parent class card die sowohl an spellcard als auch an monstercard vererbt hat habe mich im endeffekt aber dann nur für eine Klasse entschieden da die KartenTypen nichts bis auf den Enum Type unterscheidet
+
 -> Da das einzige Interface das ich habe das IDatabase Interface ist musst ich zum mocken einige funktionen virtual machen
+
 -> im nachhinein hätte ich geschaut ob es möglich gewesen wäre von Anfang an die Struktur der Handler zu definieren und daraus ein Interface oder eine Parent Klasse zu machen.
 
 Obwohl das Rumprobieren viel Zeit gekostet hat konnte ich dadurch einige C# und Web Server Prinzipien besser nachvollziehen. Mehr Planung wäre hilfreich gewesen aber durch mein fehlendes C# Wissen zu Beginn konnte ich nicht ganz einschätzen was alles eingeplant werden musste, weshalb ich einfach mal angefangen habe zu programmieren und dann im Endeffekt viel ändern musste.
