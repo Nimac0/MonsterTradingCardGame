@@ -1,4 +1,5 @@
 ﻿using MonsterTradingCardGame.Db;
+using MonsterTradingCardGame.RequestHandler;
 using MonsterTradingCardGame.Schemas;
 using Newtonsoft.Json;
 using System;
@@ -12,8 +13,29 @@ namespace MonsterTradingCardGame.http
 {
     public class SessionHandler
     {
+        public DbQuery dbQuery = new DbQuery();
         public static Dictionary<string, int> tokenMap = new Dictionary<string, int>(); // token > id > user object
         public static Dictionary<int, User> userMap = new Dictionary<int, User>();
+        private static SessionHandler instance = null;
+        private static readonly object padlock = new object();
+        SessionHandler()
+        {
+        }
+
+        public static SessionHandler Instance
+        {
+            get
+            {
+                lock (padlock)
+                {
+                    if (instance == null)
+                    {
+                        instance = new SessionHandler();
+                    }
+                    return instance;
+                }
+            }
+        }
 
         public string LoginUser(string requestBody)
         {
@@ -26,7 +48,7 @@ namespace MonsterTradingCardGame.http
             {
                 Console.WriteLine(e.Message);
             }
-            DbQuery dbHandler = new DbQuery(@"SELECT * FROM users WHERE username = @username AND password = @password");
+            DbQuery dbHandler = this.dbQuery.NewCommand(@"SELECT * FROM users WHERE username = @username AND password = @password");
             dbHandler.AddParameterWithValue("username", DbType.String, newUserData.Username);
             dbHandler.AddParameterWithValue("password", DbType.String, newUserData.Password);
             using (IDataReader reader = dbHandler.ExecuteReader())
@@ -58,7 +80,7 @@ namespace MonsterTradingCardGame.http
             return token;
         }
 
-        public static string GetUsernameByToken(string authToken)
+        public string GetUsernameByToken(string authToken)
         {
             authToken = authToken.TrimEnd('\r', '\n');
             Console.WriteLine(authToken);
@@ -75,9 +97,9 @@ namespace MonsterTradingCardGame.http
             return userMap[tokenMap[authToken]].Username;
         }
 
-        public static int? GetIdByUsername(string username)
+        public int? GetIdByUsername(string username)
         {
-            DbQuery getIdByUsername = new DbQuery(@"SELECT users.id FROM users WHERE username = @username");
+            DbQuery getIdByUsername = this.dbQuery.NewCommand(@"SELECT users.id FROM users WHERE username = @username");
 
             getIdByUsername.AddParameterWithValue("username", DbType.String, username);
 

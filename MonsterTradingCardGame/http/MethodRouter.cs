@@ -1,4 +1,5 @@
-﻿using MonsterTradingCardGame.RequestHandler;
+﻿using MonsterTradingCardGame.Db;
+using MonsterTradingCardGame.RequestHandler;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -13,16 +14,18 @@ namespace MonsterTradingCardGame.http
 
     public class MethodRouter
     {
+        public DbQuery dbQuery = new DbQuery();
         public string HandleMethod(string method, string destination, string body, string authToken)
         {
             UserHandler userHandler = new UserHandler();
-            SessionHandler sessionHandler = new SessionHandler();
+            SessionHandler sessionHandler = SessionHandler.Instance;
             CardHandler cardHandler = new CardHandler();
             PackageHandler packageHandler = new PackageHandler();
             TradeHandler tradeHandler = new TradeHandler();
             FightHandler fightHandler = FightHandler.Instance;
 
             string response = "";
+
             switch (destination)
             {
                 case "/users" when method == "POST":

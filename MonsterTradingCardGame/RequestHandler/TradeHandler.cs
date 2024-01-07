@@ -13,11 +13,13 @@ namespace MonsterTradingCardGame.RequestHandler
 {
     public class TradeHandler
     {
+        public DbQuery dbQuery = new DbQuery();
+
         public string GetTrades(string authToken)
         {
-            string? authorizedUser = SessionHandler.GetUsernameByToken(authToken);
+            string? authorizedUser = SessionHandler.Instance.GetUsernameByToken(authToken);
             if (string.IsNullOrEmpty(authorizedUser)) return Response.CreateResponse("401", "Unauthorised", "", "application/json");
-            DbQuery dbHandler = new DbQuery(@"SELECT * FROM trades;");
+            DbQuery dbHandler = this.dbQuery.NewCommand(@"SELECT * FROM trades;");
             List<Trade> trades = new List<Trade>();
             using (IDataReader reader = dbHandler.ExecuteReader())
             {
@@ -49,19 +51,19 @@ namespace MonsterTradingCardGame.RequestHandler
                 Console.WriteLine(e.Message);
             }
 
-            int? userId = SessionHandler.GetIdByUsername(SessionHandler.GetUsernameByToken(authToken));
+            int? userId = SessionHandler.Instance.GetIdByUsername(SessionHandler.Instance.GetUsernameByToken(authToken));
             if (userId == null) return Response.CreateResponse("401", "Unauthorised", "", "application/json");
 
             if (TradeIdExists(newTrade.CardId)) return Response.CreateResponse("409", "Conflict", "", "application/json");
 
             if (!IsCardOwner(newTrade.CardId, userId)) return Response.CreateResponse("403", "Forbidden", "", "application/json");
 
-            DbQuery putInTrade = new DbQuery(@"UPDATE cards SET intrade = TRUE WHERE id = @cardid;");
+            DbQuery putInTrade = this.dbQuery.NewCommand(@"UPDATE cards SET intrade = TRUE WHERE id = @cardid;");
 
             putInTrade.AddParameterWithValue("cardid", DbType.String, newTrade.CardId);
             putInTrade.ExecuteNonQuery();
 
-            DbQuery createTrade = new DbQuery(@"INSERT INTO trades (id, requiredtype, requireddamage, cardid) VALUES (@id, @requiredtype, @requireddamage, @cardid) RETURNING id;");
+            DbQuery createTrade = this.dbQuery.NewCommand(@"INSERT INTO trades (id, requiredtype, requireddamage, cardid) VALUES (@id, @requiredtype, @requireddamage, @cardid) RETURNING id;");
             createTrade.AddParameterWithValue("id", DbType.String, newTrade.Id);
             createTrade.AddParameterWithValue("requiredtype", DbType.String, newTrade.RequiredType);
             createTrade.AddParameterWithValue("requireddamage", DbType.Decimal, newTrade.RequiredDamage);
@@ -75,18 +77,18 @@ namespace MonsterTradingCardGame.RequestHandler
 
         public string DeleteTrade(string tradeId, string authToken)
         {
-            int? userId = SessionHandler.GetIdByUsername(SessionHandler.GetUsernameByToken(authToken));
+            int? userId = SessionHandler.Instance.GetIdByUsername(SessionHandler.Instance.GetUsernameByToken(authToken));
             if (userId == null) return Response.CreateResponse("401", "Unauthorised", "", "application/json");
 
             Trade currTrade = GetTradeFromId(tradeId);
 
             if (!IsCardOwner(currTrade.CardId, userId)) return Response.CreateResponse("403", "Forbidden", "", "application/json");
 
-            DbQuery putInTrade = new DbQuery(@"UPDATE cards SET intrade = FALSE WHERE id = @cardid;");
+            DbQuery putInTrade = this.dbQuery.NewCommand(@"UPDATE cards SET intrade = FALSE WHERE id = @cardid;");
             putInTrade.AddParameterWithValue("cardid", DbType.String, currTrade.CardId);
             putInTrade.ExecuteNonQuery();
 
-            DbQuery deleteTrade = new DbQuery(@"DELETE FROM trades WHERE id = @tradeid;");
+            DbQuery deleteTrade = this.dbQuery.NewCommand(@"DELETE FROM trades WHERE id = @tradeid;");
             deleteTrade.AddParameterWithValue("tradeid", DbType.String, tradeId);
             deleteTrade.ExecuteNonQuery();
 
@@ -96,7 +98,7 @@ namespace MonsterTradingCardGame.RequestHandler
         public string StartTrade(string requestBody, string tradeId, string authToken) //requestBody here should be cardid of offered card
         {
             string cardId = (string)JsonConvert.DeserializeObject(requestBody);
-            int? userId = SessionHandler.GetIdByUsername(SessionHandler.GetUsernameByToken(authToken));
+            int? userId = SessionHandler.Instance.GetIdByUsername(SessionHandler.Instance.GetUsernameByToken(authToken));
             if (userId == null) return Response.CreateResponse("401", "Unauthorised", "", "application/json");
 
             if (!TradeIdExists(tradeId)) return Response.CreateResponse("404", "Not Found", "", "application/json");
@@ -104,7 +106,7 @@ namespace MonsterTradingCardGame.RequestHandler
             Trade currTrade = GetTradeFromId(tradeId);
             if (!IsCardOwner(cardId, userId) || !CheckRequirements(currTrade, cardId)) return Response.CreateResponse("403", "Forbidden", "", "application/json");
 
-            DbQuery getTradeOwner = new DbQuery(@"SELECT userid FROM cards WHERE id = @cardid;");
+            DbQuery getTradeOwner = this.dbQuery.NewCommand(@"SELECT userid FROM cards WHERE id = @cardid;");
             getTradeOwner.AddParameterWithValue("cardid", DbType.String, currTrade.CardId);
             int ownerId = 0;
 
@@ -116,6 +118,8 @@ namespace MonsterTradingCardGame.RequestHandler
                 }
             }
 
+            if (ownerId == userId) return Response.CreateResponse("403", "Forbidden", "", "application/json");
+
             PackageHandler packageHandler = new PackageHandler();
             if (!packageHandler.ChangeCardOwner(ownerId, cardId)) return "???";
             if (!packageHandler.ChangeCardOwner(userId, currTrade.CardId)) return "???";
@@ -125,7 +129,7 @@ namespace MonsterTradingCardGame.RequestHandler
 
         public bool IsCardOwner(string cardId, int? userId)
         {
-            DbQuery checkOwner = new DbQuery(@"SELECT * FROM cards WHERE id = @cardid AND userid = @userid AND indeck = FALSE;");
+            DbQuery checkOwner = this.dbQuery.NewCommand(@"SELECT * FROM cards WHERE id = @cardid AND userid = @userid AND indeck = FALSE;");
             checkOwner.AddParameterWithValue("cardid", DbType.String, cardId);
             checkOwner.AddParameterWithValue("userid", DbType.Int32, userId);
 
@@ -138,7 +142,7 @@ namespace MonsterTradingCardGame.RequestHandler
 
         public bool TradeIdExists(string tradeId)
         {
-            DbQuery checkTradeId = new DbQuery(@"SELECT * FROM trades WHERE id = @tradeid");
+            DbQuery checkTradeId = this.dbQuery.NewCommand(@"SELECT * FROM trades WHERE id = @tradeid");
             checkTradeId.AddParameterWithValue("tradeid", DbType.String, tradeId);
 
             using (IDataReader reader = checkTradeId.ExecuteReader())
@@ -153,7 +157,7 @@ namespace MonsterTradingCardGame.RequestHandler
 
         public Trade GetTradeFromId(string tradeId)
         {
-            DbQuery getTradeFromId = new DbQuery(@"SELECT * FROM trades WHERE id = @id;");
+            DbQuery getTradeFromId = this.dbQuery.NewCommand(@"SELECT * FROM trades WHERE id = @id;");
             getTradeFromId.AddParameterWithValue("id", DbType.String, tradeId);
 
             Trade currTrade = new Trade();
@@ -173,7 +177,7 @@ namespace MonsterTradingCardGame.RequestHandler
 
         public bool CheckRequirements(Trade currTrade, string cardId)
         {
-            DbQuery getCardStats = new DbQuery(@"SELECT cardtype, damage, indeck FROM cards WHERE id = @cardid");
+            DbQuery getCardStats = this.dbQuery.NewCommand(@"SELECT cardtype, damage, indeck FROM cards WHERE id = @cardid");
             getCardStats.AddParameterWithValue("cardid", DbType.String, cardId);
 
             CardType type = 0;

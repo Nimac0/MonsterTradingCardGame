@@ -16,6 +16,7 @@ namespace MonsterTradingCardGame.RequestHandler
     //https://csharpindepth.com/articles/singleton#lock
     public sealed class FightHandler
     {
+        public DbQuery dbQuery = new DbQuery();
         private static FightHandler instance = null;
         private static readonly object padlock = new object();
         private Dictionary<int, List<string>?> lobby = new Dictionary<int, List<string>?>();
@@ -48,7 +49,7 @@ namespace MonsterTradingCardGame.RequestHandler
 
             lock (lobbyMutex)
             {
-                int? userId = SessionHandler.GetIdByUsername(SessionHandler.GetUsernameByToken(authToken));
+                int? userId = SessionHandler.Instance.GetIdByUsername(SessionHandler.Instance.GetUsernameByToken(authToken));
                 if (userId == null)
                 {
                     return Response.CreateResponse("401", "Unauthorised", "", "application/json");
@@ -97,9 +98,9 @@ namespace MonsterTradingCardGame.RequestHandler
             return Response.CreateResponse("200", "OK", JsonConvert.SerializeObject(battleLog), "application/json");
         }
 
-        public static User CreateUserFromId(int? userId)
+        public User CreateUserFromId(int? userId)
         {
-            DbQuery getUserData = new DbQuery(@"SELECT name, coins, elo, wins, losses FROM users WHERE id = @userid;");
+            DbQuery getUserData = this.dbQuery.NewCommand(@"SELECT name, coins, elo, wins, losses FROM users WHERE id = @userid;");
             getUserData.AddParameterWithValue("userid", DbType.Int32, userId);
 
             User newUser = new User();
@@ -118,14 +119,14 @@ namespace MonsterTradingCardGame.RequestHandler
             }
 
             List<Card> cardDeck = new List<Card>();
-            DbQuery getDeck = new DbQuery(@"SELECT cards.id,element,cardtype,damage,indeck,intrade,userid, cardname FROM cards WHERE userid = @userid AND indeck = TRUE;");
+            DbQuery getDeck = this.dbQuery.NewCommand(@"SELECT cards.id,element,cardtype,damage,indeck,intrade,userid, cardname FROM cards WHERE userid = @userid AND indeck = TRUE;");
             getDeck.AddParameterWithValue("userid", DbType.Int32, userId);
 
             using (IDataReader reader = getDeck.ExecuteReader())
             {
                 while (reader.Read())
                 {
-                    Card newCard = new Card(reader.GetString(0), (Element)reader.GetInt32(1), (CardType)reader.GetInt32(2), reader.GetFloat(3), reader.GetBoolean(4), reader.GetBoolean(5));
+                    Card newCard = new Card(reader.GetString(0), (Element)reader.GetInt32(1), (CardType)reader.GetInt32(2), reader.GetFloat(3), reader.GetBoolean(4), reader.GetBoolean(5), reader.GetString(7));
 
                     cardDeck.Add(newCard);
                 }

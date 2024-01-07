@@ -12,7 +12,7 @@ namespace MonsterTradingCardGame.http
 {
     public class Connection
     {
-        public void HandleConnection() //TODO rename 
+        public void HandleConnection()
         {
             MethodRouter methodHandler = new MethodRouter();
             Socket serverSocket = new Socket(AddressFamily.InterNetwork,
@@ -24,7 +24,7 @@ namespace MonsterTradingCardGame.http
 
             while (true)
             {
-                serverSocket.Listen(6);
+                serverSocket.Listen(10);
                 Console.WriteLine("waiting for connections...");
                 Socket clientSocket = serverSocket.Accept();
                 Console.WriteLine("after waiting for connections...");

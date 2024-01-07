@@ -15,8 +15,9 @@ using static System.Net.WebRequestMethods;
 
 namespace MonsterTradingCardGame.RequestHandler
 {
-    internal class UserHandler
+    public class UserHandler
     {
+        public DbQuery dbQuery = new DbQuery();
         public string CreateUser(string username, string requestBody, string authToken)
         {
             User newUser = new User();
@@ -30,7 +31,7 @@ namespace MonsterTradingCardGame.RequestHandler
             }
             if (GetUserData(newUser.Username, authToken, false) != null) return Response.CreateResponse("409", "Conflict", "", "application/json");
 
-            DbQuery dbHandler = new DbQuery("INSERT INTO users (username, password, coins, elo, wins, losses, name, bio, image) " +
+            DbQuery dbHandler = this.dbQuery.NewCommand("INSERT INTO users (username, password, coins, elo, wins, losses, name, bio, image) " +
                 "VALUES (@username, @password, @coins, @elo, @wins, @losses, @name, @bio, @image) RETURNING id");
 
             dbHandler.AddParameterWithValue("username", DbType.String, newUser.Username);
@@ -51,9 +52,9 @@ namespace MonsterTradingCardGame.RequestHandler
 
         public string GetUserData(string username, string authToken, bool authNeeded)
         {
-            string authorizedUser = SessionHandler.GetUsernameByToken(authToken);
+            string authorizedUser = SessionHandler.Instance.GetUsernameByToken(authToken);
             if (!string.Equals(username, authorizedUser) && authNeeded) return Response.CreateResponse("401", "Unauthorised", "", "application/json");
-            DbQuery dbHandler = new DbQuery(@"SELECT * FROM users WHERE username = @username");
+            DbQuery dbHandler = this.dbQuery.NewCommand(@"SELECT * FROM users WHERE username = @username");
 
             dbHandler.AddParameterWithValue("username", DbType.String, username);
             using (IDataReader reader = dbHandler.ExecuteReader())
@@ -93,7 +94,7 @@ namespace MonsterTradingCardGame.RequestHandler
 
             if (getUserResponse == null) return Response.CreateResponse("404", "Not Found", "", "application/json");
 
-            DbQuery dbHandler = new DbQuery("UPDATE users SET name = @displayname, bio = @bio, image = @image WHERE username = @username");
+            DbQuery dbHandler = this.dbQuery.NewCommand("UPDATE users SET name = @displayname, bio = @bio, image = @image WHERE username = @username");
 
             dbHandler.AddParameterWithValue("username", DbType.String, username);
             dbHandler.AddParameterWithValue("displayname", DbType.String, newUserData.Name);
@@ -106,9 +107,9 @@ namespace MonsterTradingCardGame.RequestHandler
 
         public string GetUserStats(string authToken, bool getAll)
         {
-            string authorizedUser = SessionHandler.GetUsernameByToken(authToken);
+            string authorizedUser = SessionHandler.Instance.GetUsernameByToken(authToken);
             if (string.IsNullOrEmpty(authorizedUser) && !getAll) return Response.CreateResponse("401", "Unauthorised", "", "application/json");
-            DbQuery dbHandler = new DbQuery(getAll ? @"SELECT name, elo, wins, losses FROM users;"
+            DbQuery dbHandler = this.dbQuery.NewCommand(getAll ? @"SELECT name, elo, wins, losses FROM users;"
                 : @"SELECT name, elo, wins, losses FROM users WHERE username = @username;");
 
             if (!getAll) dbHandler.AddParameterWithValue("username", DbType.String, authorizedUser);

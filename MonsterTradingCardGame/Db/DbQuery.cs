@@ -11,16 +11,29 @@ using System.Threading.Tasks;
 
 namespace MonsterTradingCardGame.Db
 {
-    public class DbQuery
+    public class DbQuery : IDatabase
     {
         private IDbCommand command;
 
         private static string connectionstring = "Host=localhost;Username=nimaco;Password=mtcgSwen;Database=mydb;Include Error Detail=true";
 
-        public DbQuery(string commandtext)
+
+
+        public DbQuery() {
+
+        }
+        
+        public DbQuery NewCommand(string commandtext)
         {
+            if (command != null)
+            {
+                command.Dispose();
+            }
+
             command = ConnectToDb();
             command.CommandText = commandtext;
+
+            return this;
         }
 
         public IDbCommand ConnectToDb()

@@ -13,6 +13,7 @@ namespace MonsterTradingCardGame
 {
     public class Fight
     {
+        public DbQuery dbQuery = new DbQuery();
         public enum fightResult
         {
             WIN = 0,
@@ -59,12 +60,12 @@ namespace MonsterTradingCardGame
 
                 if(WinnerCard == currPlayerCard)
                 {
-                    _battleLog.Add(currPlayerCard.CardName + " beats " + currEnemyCard.CardName + ".");
+                    _battleLog.Add(currPlayerCard.Name + " beats " + currEnemyCard.Name + ".");
                     this._player.CardStack.Add(this._enemy.PlayingDeck.First()); //take losers card to cardstack
                     this._enemy.PlayingDeck.RemoveAt(0);
                     continue;
                 }
-                _battleLog.Add(currEnemyCard.CardName + " beats " + currPlayerCard.CardName + ".");
+                _battleLog.Add(currEnemyCard.Name + " beats " + currPlayerCard.Name + ".");
                 this._enemy.CardStack.Add(this._player.PlayingDeck.First());
                 this._player.PlayingDeck.RemoveAt(0);
                 continue;
@@ -100,12 +101,12 @@ namespace MonsterTradingCardGame
             }
             if (getImmunity(playerCard, enemyCard))
             {
-                _battleLog.Add(playerCard.CardName + " is immune.");
+                _battleLog.Add(playerCard.Name + " is immune.");
                 return playerCard;
             }
             if (getImmunity(enemyCard, playerCard))
             {
-                _battleLog.Add(enemyCard.CardName + " is immune.");
+                _battleLog.Add(enemyCard.Name + " is immune.");
                 return enemyCard;
             } 
 
@@ -132,7 +133,7 @@ namespace MonsterTradingCardGame
             switch(playerCard.Type)
             {
                 case CardType.DRAGON when enemyCard.Type == CardType.GOBLIN:
-                case CardType.WIZZARD when enemyCard.Type == CardType.ORKS:
+                case CardType.WIZZARD when enemyCard.Type == CardType.ORK:
                 case CardType.SPELL when playerCard.CardElement == Element.WATER && enemyCard.Type == CardType.KNIGHT:
                 case CardType.KRAKEN when enemyCard.Type == CardType.SPELL:
                 case CardType.ELF when playerCard.CardElement == Element.FIRE && enemyCard.Type == CardType.DRAGON:
@@ -143,15 +144,15 @@ namespace MonsterTradingCardGame
 
         public bool HandleEndOfBattle(int? winnerId, int? loserId, Card wonCard)
         {
-            DbQuery updateWinnerStats = new DbQuery(@"UPDATE users SET elo = elo + 5, wins = wins + 1 WHERE id = winnerId;");
+            DbQuery updateWinnerStats = this.dbQuery.NewCommand(@"UPDATE users SET elo = elo + 5, wins = wins + 1 WHERE id = winnerId;");
             updateWinnerStats.AddParameterWithValue("winnerid", DbType.Int32, winnerId);
             if(updateWinnerStats.ExecuteNonQuery() == 0) return false;
             
-            DbQuery updateLoserStats = new DbQuery(@"UPDATE users SET elo = elo - 3, losses = losses + 1, coins = coins + 1 WHERE id = loserId;");
+            DbQuery updateLoserStats = this.dbQuery.NewCommand(@"UPDATE users SET elo = elo - 3, losses = losses + 1, coins = coins + 1 WHERE id = loserId;");
             updateLoserStats.AddParameterWithValue("loserid", DbType.Int32, loserId);
             if(updateLoserStats.ExecuteNonQuery() == 0) return false;
             
-            DbQuery addWonCard = new DbQuery(@"UPDATE cards SET userid = @userid, indeck = FALSE WHERE id = @cardid;");
+            DbQuery addWonCard = this.dbQuery.NewCommand(@"UPDATE cards SET userid = @userid, indeck = FALSE WHERE id = @cardid;");
             addWonCard.AddParameterWithValue("userid", DbType.Int32, winnerId);
             addWonCard.AddParameterWithValue("cardid", DbType.Int32, wonCard.Id);
             if(addWonCard.ExecuteNonQuery() == 0) return false;
